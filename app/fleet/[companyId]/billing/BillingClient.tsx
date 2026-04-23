@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Invoice {
   id: string;
@@ -34,11 +33,8 @@ export default function BillingClient({
   companyId: string;
   initialInvoices: Invoice[];
 }) {
-  const router = useRouter();
   const [invoices] = useState<Invoice[]>(initialInvoices);
   const [downloading, setDownloading] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
-  const [genError, setGenError] = useState('');
 
   const downloadPdf = async (invoiceId: string) => {
     setDownloading(invoiceId);
@@ -59,51 +55,12 @@ export default function BillingClient({
     }
   };
 
-  const generateInvoice = async () => {
-    setGenError('');
-    setGenerating(true);
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-    try {
-      const res = await fetch(
-        `/api/fleet/${companyId}/billing/invoices/generate`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ periodStart: start, periodEnd: end }),
-        }
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setGenError(body.error ?? 'Generation failed');
-        return;
-      }
-      router.refresh();
-    } catch {
-      setGenError('Network error');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Billing & Invoices</h1>
-        <button
-          onClick={generateInvoice}
-          disabled={generating}
-          className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-60"
-        >
-          {generating ? 'Generating...' : '+ Generate invoice'}
-        </button>
+        <p className="text-sm text-zinc-400 mt-1">Invoices are generated automatically at the end of each month.</p>
       </div>
-      {genError && (
-        <div className="mb-4 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
-          {genError}
-        </div>
-      )}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -140,7 +97,7 @@ export default function BillingClient({
             {invoices.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-10 text-center text-zinc-500">
-                  No invoices yet. Generate one for the current month.
+                  No invoices yet. Invoices are generated automatically at the end of each month.
                 </td>
               </tr>
             )}
