@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Download, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import DatePicker from './DatePicker';
 
@@ -17,7 +18,10 @@ interface Session {
 }
 
 function formatCurrency(cents: number) {
-  return `€${(cents / 100).toFixed(2)}`;
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(cents / 100);
 }
 
 function formatDate(iso: string) {
@@ -55,15 +59,16 @@ export default function ReportsClient({
       const qs = new URLSearchParams();
       if (fromDate) qs.set('from', fromDate);
       if (toDate) qs.set('to', toDate);
-      const res = await fetch(
-        `/api/fleet/${companyId}/reports/sessions/export?${qs}`,
-      );
-      if (!res.ok) { alert('Export failed'); return; }
+      const res = await fetch(`/api/fleet/${companyId}/reports/sessions/export?${qs}`);
+      if (!res.ok) {
+        alert('Export failed');
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `fleet-report.csv`;
+      a.download = 'fleet-report.csv';
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -73,60 +78,63 @@ export default function ReportsClient({
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Session Reports</h1>
         <button
           onClick={exportCsv}
           disabled={exporting}
-          className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
         >
-          {exporting ? 'Exporting...' : '↓ Export CSV'}
+          <Download size={16} strokeWidth={2.2} />
+          {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-6 items-end">
+      <div className="mb-6 flex items-end gap-3">
         <DatePicker label="From" value={fromDate} onChange={setFromDate} />
         <DatePicker label="To" value={toDate} onChange={setToDate} />
         <button
           onClick={applyFilter}
-          className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
         >
+          <Filter size={16} strokeWidth={2.2} />
           Apply
         </button>
       </div>
 
-      <div className="text-zinc-400 text-sm mb-3">{total} sessions total</div>
+      <div className="mb-3 text-sm text-zinc-400">{total} sessions total</div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
-              <th className="text-left px-4 py-3">Employee</th>
-              <th className="text-left px-4 py-3">Station</th>
-              <th className="text-left px-4 py-3">Date</th>
-              <th className="text-left px-4 py-3">kWh</th>
-              <th className="text-left px-4 py-3">Cost</th>
-              <th className="text-left px-4 py-3">Billing</th>
+              <th className="px-4 py-3 text-left">Employee</th>
+              <th className="px-4 py-3 text-left">Station</th>
+              <th className="px-4 py-3 text-left">Date</th>
+              <th className="px-4 py-3 text-left">kWh</th>
+              <th className="px-4 py-3 text-left">Cost</th>
+              <th className="px-4 py-3 text-left">Billing</th>
             </tr>
           </thead>
           <tbody>
             {initialSessions.map((s) => (
               <tr key={s.session_id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                 <td className="px-4 py-3">
-                  <div className="text-white font-medium">{s.employee_name}</div>
-                  <div className="text-zinc-500 text-xs">{s.employee_email}</div>
+                  <div className="font-medium text-white">{s.employee_name}</div>
+                  <div className="text-xs text-zinc-500">{s.employee_email}</div>
                 </td>
                 <td className="px-4 py-3 text-zinc-300">{s.station_name}</td>
                 <td className="px-4 py-3 text-zinc-400">{formatDate(s.started_at)}</td>
                 <td className="px-4 py-3 text-zinc-300">{s.delivered_kwh.toFixed(2)}</td>
-                <td className="px-4 py-3 text-white font-medium">{formatCurrency(s.total_cost_cents)}</td>
+                <td className="px-4 py-3 font-medium text-white">{formatCurrency(s.total_cost_cents)}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                    s.billing_mode === 'COMPANY_PAID'
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-blue-500/20 text-blue-400'
-                  }`}>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      s.billing_mode === 'COMPANY_PAID'
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-blue-500/20 text-blue-400'
+                    }`}
+                  >
                     {s.billing_mode === 'COMPANY_PAID' ? 'Company' : 'Reimbursable'}
                   </span>
                 </td>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Plus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Member {
@@ -37,7 +38,9 @@ export default function EmployeesClient({
 }) {
   const router = useRouter();
   const [members, setMembers] = useState<Member[]>(initialMembers);
-  useEffect(() => { setMembers(initialMembers); }, [initialMembers]);
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, [initialMembers]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('EMPLOYEE');
@@ -77,7 +80,7 @@ export default function EmployeesClient({
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) {
-      setMembers((prev) => prev.map((m) => m.id === memberId ? { ...m, status: newStatus } : m));
+      setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, status: newStatus } : m)));
     }
   };
 
@@ -91,37 +94,40 @@ export default function EmployeesClient({
     }
   };
 
+  void policies;
+
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Employees</h1>
         <button
           onClick={() => setShowInvite(true)}
-          className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
         >
-          + Invite member
+          <Plus size={16} strokeWidth={2.3} />
+          Invite member
         </button>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
-              <th className="text-left px-5 py-3">Name</th>
-              <th className="text-left px-5 py-3">Email</th>
-              <th className="text-left px-5 py-3">Role</th>
-              <th className="text-left px-5 py-3">Status</th>
-              <th className="text-left px-5 py-3">Actions</th>
+              <th className="px-5 py-3 text-left">Name</th>
+              <th className="px-5 py-3 text-left">Email</th>
+              <th className="px-5 py-3 text-left">Role</th>
+              <th className="px-5 py-3 text-left">Status</th>
+              <th className="px-5 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {members.map((m) => (
               <tr key={m.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                <td className="px-5 py-3 text-white font-medium">{m.user_name ?? '—'}</td>
+                <td className="px-5 py-3 font-medium text-white">{m.user_name ?? '-'}</td>
                 <td className="px-5 py-3 text-zinc-400">{m.user_email}</td>
                 <td className="px-5 py-3 text-zinc-300">{m.role.replace(/_/g, ' ')}</td>
                 <td className="px-5 py-3">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_STYLES[m.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
+                  <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[m.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
                     {m.status}
                   </span>
                 </td>
@@ -129,14 +135,14 @@ export default function EmployeesClient({
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleSuspend(m.id, m.status)}
-                      className="text-xs text-zinc-400 hover:text-yellow-400 transition-colors"
+                      className="text-xs text-zinc-400 transition-colors hover:text-yellow-400"
                     >
                       {m.status === 'SUSPENDED' ? 'Activate' : 'Suspend'}
                     </button>
                     {m.role !== 'FLEET_OWNER' && (
                       <button
                         onClick={() => handleRemove(m.id)}
-                        className="text-xs text-zinc-400 hover:text-red-400 transition-colors"
+                        className="text-xs text-zinc-400 transition-colors hover:text-red-400"
                       >
                         Remove
                       </button>
@@ -156,37 +162,43 @@ export default function EmployeesClient({
         </table>
       </div>
 
-      {/* Invite Modal */}
       {showInvite && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-sm">
-            <h2 className="text-lg font-bold text-white mb-4">Invite member</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#33d6c5]/20 bg-[#33d6c5]/10 text-[#7ce9de]">
+                <UserPlus size={18} strokeWidth={2.1} />
+              </span>
+              <h2 className="text-lg font-bold text-white">Invite member</h2>
+            </div>
             <form onSubmit={handleInvite} className="space-y-4">
               {inviteError && (
-                <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
                   {inviteError}
                 </div>
               )}
               <div>
-                <label className="text-sm text-zinc-400 block mb-1.5">Email address</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">Email address</label>
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                   placeholder="employee@company.com"
                 />
               </div>
               <div>
-                <label className="text-sm text-zinc-400 block mb-1.5">Role</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">Role</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                 >
                   {ROLES.map((r) => (
-                    <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                    <option key={r} value={r}>
+                      {r.replace(/_/g, ' ')}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -194,14 +206,14 @@ export default function EmployeesClient({
                 <button
                   type="button"
                   onClick={() => setShowInvite(false)}
-                  className="flex-1 bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm hover:bg-zinc-700 transition-colors"
+                  className="flex-1 rounded-lg bg-zinc-800 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={inviting}
-                  className="flex-1 bg-[#4CAF50] text-black font-semibold py-2 rounded-lg text-sm disabled:opacity-60 transition-colors"
+                  className="flex-1 rounded-lg bg-[#33d6c5] py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4] disabled:opacity-60"
                 >
                   {inviting ? 'Sending...' : 'Send invite'}
                 </button>

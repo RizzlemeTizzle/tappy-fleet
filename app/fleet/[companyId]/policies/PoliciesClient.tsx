@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/api';
 
@@ -35,7 +36,7 @@ export default function PoliciesClient({
   initialPolicies: Policy[];
 }) {
   const router = useRouter();
-  const [policies, setPolicies] = useState<Policy[]>(initialPolicies);
+  const [policies] = useState<Policy[]>(initialPolicies);
   const [showEditor, setShowEditor] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyPolicy);
@@ -72,8 +73,8 @@ export default function PoliciesClient({
       name: form.name,
       maxSpendPerSessionCents: form.maxSpendPerSessionCents ? Math.round(parseFloat(form.maxSpendPerSessionCents) * 100) : null,
       maxMonthlySpendCents: form.maxMonthlySpendCents ? Math.round(parseFloat(form.maxMonthlySpendCents) * 100) : null,
-      allowedHoursStart: form.allowedHoursStart !== '' ? parseInt(form.allowedHoursStart) : null,
-      allowedHoursEnd: form.allowedHoursEnd !== '' ? parseInt(form.allowedHoursEnd) : null,
+      allowedHoursStart: form.allowedHoursStart !== '' ? parseInt(form.allowedHoursStart, 10) : null,
+      allowedHoursEnd: form.allowedHoursEnd !== '' ? parseInt(form.allowedHoursEnd, 10) : null,
       businessDaysOnly: form.businessDaysOnly,
       acOnly: form.acOnly,
     };
@@ -117,136 +118,161 @@ export default function PoliciesClient({
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Charging Policies</h1>
         <button
           onClick={openCreate}
-          className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
         >
-          + New policy
+          <Plus size={16} strokeWidth={2.3} />
+          New policy
         </button>
       </div>
 
       <div className="space-y-3">
         {policies.map((p) => (
-          <div key={p.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-white font-semibold">{p.name}</h3>
-                <div className="flex flex-wrap gap-2 mt-2">
+                <h3 className="font-semibold text-white">{p.name}</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
                   {p.maxSpendPerSessionCents != null && (
-                    <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">
-                      Max €{(p.maxSpendPerSessionCents / 100).toFixed(2)}/session
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
+                      Max EUR {(p.maxSpendPerSessionCents / 100).toFixed(2)}/session
                     </span>
                   )}
                   {p.businessDaysOnly && (
-                    <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">Business days only</span>
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">Business days only</span>
                   )}
                   {p.acOnly && (
-                    <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">AC only</span>
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">AC only</span>
                   )}
                   {p.allowedHoursStart != null && p.allowedHoursEnd != null && (
-                    <span className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">
-                      {String(p.allowedHoursStart).padStart(2, '0')}:00 – {String(p.allowedHoursEnd).padStart(2, '0')}:00
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
+                      {String(p.allowedHoursStart).padStart(2, '0')}:00 - {String(p.allowedHoursEnd).padStart(2, '0')}:00
                     </span>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => openEdit(p)} className="text-sm text-zinc-400 hover:text-white transition-colors">Edit</button>
-                <button onClick={() => handleDelete(p.id)} className="text-sm text-zinc-400 hover:text-red-400 transition-colors">Delete</button>
+                <button onClick={() => openEdit(p)} className="text-sm text-zinc-400 transition-colors hover:text-white">
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(p.id)} className="text-sm text-zinc-400 transition-colors hover:text-red-400">
+                  Delete
+                </button>
               </div>
             </div>
           </div>
         ))}
         {policies.length === 0 && (
-          <div className="text-center py-16 text-zinc-500">No policies yet. Create one to restrict employee charging.</div>
+          <div className="py-16 text-center text-zinc-500">No policies yet. Create one to restrict employee charging.</div>
         )}
       </div>
 
-      {/* Policy Editor Modal */}
       {showEditor && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold text-white mb-4">{editingId ? 'Edit policy' : 'New policy'}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#7c5cff]/20 bg-[#7c5cff]/10 text-[#9f89ff]">
+                <ShieldCheck size={18} strokeWidth={2.1} />
+              </span>
+              <h2 className="text-lg font-bold text-white">{editingId ? 'Edit policy' : 'New policy'}</h2>
+            </div>
             <form onSubmit={handleSave} className="space-y-4">
-              {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>}
+              {error && <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
               <div>
-                <label className="text-sm text-zinc-400 block mb-1.5">Policy name</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">Policy name</label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   required
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-zinc-400 block mb-1.5">Max per session (€)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">Max per session (EUR)</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={form.maxSpendPerSessionCents}
                     onChange={(e) => setForm((f) => ({ ...f, maxSpendPerSessionCents: e.target.value }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                     placeholder="No limit"
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-zinc-400 block mb-1.5">Max per month (€)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">Max per month (EUR)</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={form.maxMonthlySpendCents}
                     onChange={(e) => setForm((f) => ({ ...f, maxMonthlySpendCents: e.target.value }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                     placeholder="No limit"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-zinc-400 block mb-1.5">Allowed from (hour)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">Allowed from (hour)</label>
                   <select
                     value={form.allowedHoursStart}
                     onChange={(e) => setForm((f) => ({ ...f, allowedHoursStart: e.target.value }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                   >
                     <option value="">Any time</option>
                     {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                      <option key={i} value={i}>
+                        {String(i).padStart(2, '0')}:00
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-zinc-400 block mb-1.5">Allowed until (hour)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">Allowed until (hour)</label>
                   <select
                     value={form.allowedHoursEnd}
                     onChange={(e) => setForm((f) => ({ ...f, allowedHoursEnd: e.target.value }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                   >
                     <option value="">Any time</option>
                     {Array.from({ length: 24 }, (_, i) => (
-                      <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                      <option key={i} value={i}>
+                        {String(i).padStart(2, '0')}:00
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.businessDaysOnly} onChange={(e) => setForm((f) => ({ ...f, businessDaysOnly: e.target.checked }))} className="accent-[#4CAF50]" />
-                  <span className="text-sm text-zinc-300">Business days only (Mon–Fri)</span>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={form.businessDaysOnly}
+                    onChange={(e) => setForm((f) => ({ ...f, businessDaysOnly: e.target.checked }))}
+                    className="accent-[#33d6c5]"
+                  />
+                  <span className="text-sm text-zinc-300">Business days only (Mon-Fri)</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.acOnly} onChange={(e) => setForm((f) => ({ ...f, acOnly: e.target.checked }))} className="accent-[#4CAF50]" />
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={form.acOnly}
+                    onChange={(e) => setForm((f) => ({ ...f, acOnly: e.target.checked }))}
+                    className="accent-[#33d6c5]"
+                  />
                   <span className="text-sm text-zinc-300">AC charging only (no DC fast charge)</span>
                 </label>
               </div>
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowEditor(false)} className="flex-1 bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm hover:bg-zinc-700">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 bg-[#4CAF50] text-black font-semibold py-2 rounded-lg text-sm disabled:opacity-60">
+                <button type="button" onClick={() => setShowEditor(false)} className="flex-1 rounded-lg bg-zinc-800 py-2 text-sm text-zinc-300 hover:bg-zinc-700">
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-[#33d6c5] py-2 text-sm font-semibold text-black disabled:opacity-60">
                   {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>

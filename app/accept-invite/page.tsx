@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CheckCircle2, LoaderCircle } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
+import { BrandIcon } from '@/components/BrandIcon';
 import TappyLogo from '@/components/TappyLogo';
 
 function AcceptInviteContent() {
@@ -18,7 +20,7 @@ function AcceptInviteContent() {
 
   useEffect(() => {
     fetch('/api/auth/me')
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         setAuthed(!!data);
         setLoggedInEmail(data?.email ?? null);
@@ -61,11 +63,7 @@ function AcceptInviteContent() {
   }
 
   if (!inviteToken || !companyId) {
-    return (
-      <p className="text-red-400 text-sm mt-4">
-        Invalid invite link — token or company missing.
-      </p>
-    );
+    return <p className="mt-4 text-sm text-red-400">Invalid invite link: token or company missing.</p>;
   }
 
   if (authed === null) return null;
@@ -75,7 +73,7 @@ function AcceptInviteContent() {
       {state === 'idle' && (
         <>
           {!authed && (
-            <p className="text-zinc-400 text-sm mb-4">
+            <p className="mb-4 text-sm text-zinc-400">
               You need a Tappy Charge account to accept this invite.{' '}
               <a
                 href={`/auth/login?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`}
@@ -94,12 +92,20 @@ function AcceptInviteContent() {
             </p>
           )}
           {authed && loggedInEmail && (
-            <div className="flex items-center justify-between bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm mb-1">
-              <span className="text-zinc-400">Signed in as <span className="text-white">{loggedInEmail}</span></span>
+            <div className="mb-1 flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-4 py-2.5 text-sm">
+              <span className="text-zinc-400">
+                Signed in as <span className="text-white">{loggedInEmail}</span>
+              </span>
               <a
                 href={`/api/auth/clear-cookie`}
-                onClick={async (e) => { e.preventDefault(); await fetch('/api/auth/clear-cookie', { method: 'POST' }); router.push(`/auth/login?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`); }}
-                className="text-zinc-500 hover:text-zinc-300 text-xs ml-3 shrink-0"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await fetch('/api/auth/clear-cookie', { method: 'POST' });
+                  router.push(
+                    `/auth/login?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`,
+                  );
+                }}
+                className="ml-3 shrink-0 text-xs text-zinc-500 hover:text-zinc-300"
               >
                 Wrong account?
               </a>
@@ -108,7 +114,7 @@ function AcceptInviteContent() {
           <button
             onClick={handleAccept}
             disabled={!authed}
-            className="w-full bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] hover:opacity-90 text-white font-semibold py-3 rounded-xl transition-opacity disabled:opacity-40 text-sm"
+            className="w-full rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             Accept invite
           </button>
@@ -116,21 +122,26 @@ function AcceptInviteContent() {
       )}
 
       {state === 'loading' && (
-        <p className="text-zinc-400 text-sm text-center">Accepting invite…</p>
+        <div className="flex items-center justify-center gap-2 text-center text-sm text-zinc-400">
+          <LoaderCircle size={16} className="animate-spin" />
+          <span>Accepting invite...</span>
+        </div>
       )}
 
       {state === 'success' && (
-        <div className="text-center space-y-3">
-          <div className="text-4xl">✅</div>
-          <p className="text-white font-semibold">You've joined the fleet!</p>
-          <p className="text-zinc-400 text-sm">
+        <div className="space-y-3 text-center">
+          <div className="flex justify-center">
+            <BrandIcon icon={CheckCircle2} tone="teal" className="h-16 w-16" size={28} />
+          </div>
+          <p className="font-semibold text-white">You've joined the fleet!</p>
+          <p className="text-sm text-zinc-400">
             Open the TapCharge app on your phone to start charging under your company account.
           </p>
         </div>
       )}
 
       {state === 'error' && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {message}
         </div>
       )}
@@ -140,14 +151,14 @@ function AcceptInviteContent() {
 
 export default function AcceptInvitePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <div className="flex justify-center mb-3">
+          <div className="mb-3 flex justify-center">
             <TappyLogo size={56} />
           </div>
           <h1 className="text-2xl font-bold text-white">Fleet Invite</h1>
-          <p className="text-zinc-400 mt-1 text-sm">You've been invited to join a company fleet</p>
+          <p className="mt-1 text-sm text-zinc-400">You've been invited to join a company fleet</p>
         </div>
         <Suspense>
           <AcceptInviteContent />

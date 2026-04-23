@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import {
+  BarChart3,
   BatteryCharging,
   ReceiptText,
-  ShieldCheck,
   Users,
   UsersRound,
   Zap,
@@ -61,7 +61,7 @@ export default async function FleetOverviewPage({
       href: 'reports',
       label: 'Session reports',
       desc: 'Filter and export CSV',
-      icon: ShieldCheck,
+      icon: BarChart3,
       tone: 'mixed' as const,
     },
   ];
