@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_URL } from '@/lib/api';
 
 interface Session {
   session_id: string;
@@ -56,8 +55,7 @@ export default function ReportsClient({
       if (fromDate) qs.set('from', fromDate);
       if (toDate) qs.set('to', toDate);
       const res = await fetch(
-        `${API_URL}/api/fleet/companies/${companyId}/reports/sessions/export?${qs}`,
-        { credentials: 'include' }
+        `/api/fleet/${companyId}/reports/sessions/export?${qs}`,
       );
       if (!res.ok) { alert('Export failed'); return; }
       const blob = await res.blob();

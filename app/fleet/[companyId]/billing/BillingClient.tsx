@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { API_URL } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 interface Invoice {
@@ -45,8 +44,7 @@ export default function BillingClient({
     setDownloading(invoiceId);
     try {
       const res = await fetch(
-        `${API_URL}/api/fleet/companies/${companyId}/billing/invoices/${invoiceId}/pdf`,
-        { credentials: 'include' }
+        `/api/fleet/${companyId}/billing/invoices/${invoiceId}/pdf`,
       );
       if (!res.ok) { alert('Failed to download PDF'); return; }
       const blob = await res.blob();
@@ -69,11 +67,10 @@ export default function BillingClient({
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
     try {
       const res = await fetch(
-        `${API_URL}/api/fleet/companies/${companyId}/billing/invoices/generate`,
+        `/api/fleet/${companyId}/billing/invoices/generate`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ periodStart: start, periodEnd: end }),
         }
       );

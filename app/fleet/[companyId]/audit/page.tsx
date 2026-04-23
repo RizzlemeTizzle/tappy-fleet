@@ -23,7 +23,7 @@ export default async function AuditPage({
   params: Promise<{ companyId: string }>;
 }) {
   const { companyId } = await params;
-  const res = await apiFetch(`/fleet/companies/${companyId}/audit`);
+  const res = await apiFetch(`/fleet/companies/${companyId}/audit-log`);
   const logs: AuditEntry[] = res.ok ? await res.json() : [];
 
   return (
