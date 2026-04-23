@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import TappyLogo from '@/components/TappyLogo';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get('next') ?? '/fleet';
+  const emailPrefill = params.get('email') ?? '';
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(emailPrefill);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ export default function RegisterPage() {
         setError(body.error ?? 'Registration failed. Try again.');
         return;
       }
-      router.push('/fleet');
+      router.push(next);
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -96,11 +99,22 @@ export default function RegisterPage() {
         </form>
         <p className="text-center text-zinc-500 text-sm">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-[#7c5cff] hover:underline">
+          <Link
+            href={`/auth/login?next=${encodeURIComponent(next)}`}
+            className="text-[#7c5cff] hover:underline"
+          >
             Sign in
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

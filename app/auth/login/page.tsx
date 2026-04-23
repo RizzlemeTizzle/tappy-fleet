@@ -86,7 +86,10 @@ function LoginForm() {
         </form>
         <p className="text-center text-zinc-500 text-sm">
           No account?{' '}
-          <Link href="/auth/register" className="text-[#7c5cff] hover:underline">
+          <Link
+            href={`/auth/register?next=${encodeURIComponent(next)}`}
+            className="text-[#7c5cff] hover:underline"
+          >
             Register
           </Link>
         </p>
