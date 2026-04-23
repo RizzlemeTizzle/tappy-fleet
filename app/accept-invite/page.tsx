@@ -17,6 +17,7 @@ function AcceptInviteContent() {
   const [message, setMessage] = useState('');
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
+  const appUrl = 'https://tappy-charge.com/app';
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -27,6 +28,16 @@ function AcceptInviteContent() {
       })
       .catch(() => setAuthed(false));
   }, []);
+
+  useEffect(() => {
+    if (state !== 'success') return;
+
+    const timeout = window.setTimeout(() => {
+      window.location.href = appUrl;
+    }, 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [state]);
 
   async function handleAccept() {
     if (!inviteToken || !companyId) {
@@ -135,8 +146,14 @@ function AcceptInviteContent() {
           </div>
           <p className="font-semibold text-white">You've joined the fleet!</p>
           <p className="text-sm text-zinc-400">
-            Open the TapCharge app on your phone to start charging under your company account.
+            Redirecting you to the Tappy Charge app page so you can continue on your phone.
           </p>
+          <a
+            href={appUrl}
+            className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Open app page
+          </a>
         </div>
       )}
 
