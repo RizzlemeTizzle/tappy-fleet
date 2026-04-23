@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/auth';
 import { apiFetch } from '@/lib/apiFetch';
 import Link from 'next/link';
+import CreateOrgButton from './CreateOrgButton';
 
 interface Membership {
   id: string;
@@ -39,7 +40,8 @@ export default async function FleetRootPage() {
         {memberships.length === 0 ? (
           <div className="text-center py-20 text-zinc-500">
             <p className="text-lg">No fleet memberships</p>
-            <p className="text-sm mt-2">Ask your fleet manager to invite you.</p>
+            <p className="text-sm mt-2">Create a new organization or ask your fleet manager to invite you.</p>
+            <CreateOrgButton />
           </div>
         ) : (
           <div className="space-y-3">
