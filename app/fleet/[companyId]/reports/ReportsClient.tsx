@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import DatePicker from './DatePicker';
 
 interface Session {
   session_id: string;
@@ -84,33 +85,15 @@ export default function ReportsClient({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6">
-        <div>
-          <label className="text-xs text-zinc-400 block mb-1">From</label>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-400 block mb-1">To</label>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#4CAF50]"
-          />
-        </div>
-        <div className="flex items-end">
-          <button
-            onClick={applyFilter}
-            className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
-          >
-            Apply
-          </button>
-        </div>
+      <div className="flex gap-3 mb-6 items-end">
+        <DatePicker label="From" value={fromDate} onChange={setFromDate} />
+        <DatePicker label="To" value={toDate} onChange={setToDate} />
+        <button
+          onClick={applyFilter}
+          className="bg-[#4CAF50] hover:bg-[#43A047] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+        >
+          Apply
+        </button>
       </div>
 
       <div className="text-zinc-400 text-sm mb-3">{total} sessions total</div>
