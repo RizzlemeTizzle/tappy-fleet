@@ -1,4 +1,13 @@
 import Link from 'next/link';
+import {
+  BatteryCharging,
+  ReceiptText,
+  ShieldCheck,
+  Users,
+  UsersRound,
+  Zap,
+} from 'lucide-react';
+import { BrandIcon } from '@/components/BrandIcon';
 import { apiFetch } from '@/lib/apiFetch';
 
 interface OverviewData {
@@ -9,7 +18,10 @@ interface OverviewData {
 }
 
 function formatCurrency(cents: number) {
-  return `€${(cents / 100).toFixed(2)}`;
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(cents / 100);
 }
 
 export default async function FleetOverviewPage({
@@ -24,39 +36,65 @@ export default async function FleetOverviewPage({
     : { active_members: 0, sessions_this_month: 0, spend_this_month_cents: 0, kwh_this_month: 0 };
 
   const kpis = [
-    { label: 'Active Members', value: String(overview.active_members), icon: '👥' },
-    { label: 'Sessions This Month', value: String(overview.sessions_this_month), icon: '⚡' },
-    { label: 'Spend This Month', value: formatCurrency(overview.spend_this_month_cents), icon: '💶' },
-    { label: 'kWh This Month', value: `${overview.kwh_this_month.toFixed(1)} kWh`, icon: '🔋' },
+    { label: 'Active Members', value: String(overview.active_members), icon: UsersRound, tone: 'violet' as const },
+    { label: 'Sessions This Month', value: String(overview.sessions_this_month), icon: Zap, tone: 'teal' as const },
+    { label: 'Spend This Month', value: formatCurrency(overview.spend_this_month_cents), icon: ReceiptText, tone: 'violet' as const },
+    { label: 'kWh This Month', value: `${overview.kwh_this_month.toFixed(1)} kWh`, icon: BatteryCharging, tone: 'teal' as const },
+  ];
+
+  const quickLinks = [
+    {
+      href: 'employees',
+      label: 'Manage employees',
+      desc: 'Invite and assign policies',
+      icon: Users,
+      tone: 'teal' as const,
+    },
+    {
+      href: 'billing',
+      label: 'View invoices',
+      desc: 'Download PDF invoices',
+      icon: ReceiptText,
+      tone: 'violet' as const,
+    },
+    {
+      href: 'reports',
+      label: 'Session reports',
+      desc: 'Filter and export CSV',
+      icon: ShieldCheck,
+      tone: 'mixed' as const,
+    },
   ];
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-white mb-6">Overview</h1>
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <h1 className="mb-6 text-2xl font-bold text-white">Overview</h1>
+
+      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-white/[0.05] border border-white/10 rounded-xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-            <div className="text-2xl mb-2">{kpi.icon}</div>
+          <div
+            key={kpi.label}
+            className="rounded-xl border border-white/10 bg-white/[0.05] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+          >
+            <BrandIcon icon={kpi.icon} tone={kpi.tone} className="mb-4 h-12 w-12" size={22} />
             <div className="text-2xl font-bold text-white">{kpi.value}</div>
-            <div className="text-zinc-400 text-sm mt-1">{kpi.label}</div>
+            <div className="mt-1 text-sm text-zinc-400">{kpi.label}</div>
           </div>
         ))}
       </div>
-      <div className="bg-white/[0.05] border border-white/10 rounded-xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-        <h2 className="text-lg font-semibold text-white mb-4">Quick links</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { href: 'employees', label: 'Manage employees', desc: 'Invite & assign policies' },
-            { href: 'billing', label: 'View invoices', desc: 'Download PDF invoices' },
-            { href: 'reports', label: 'Session reports', desc: 'Filter & export CSV' },
-          ].map((link) => (
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.05] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+        <h2 className="mb-4 text-lg font-semibold text-white">Quick links</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {quickLinks.map((link) => (
             <Link
               key={link.href}
               href={`/fleet/${companyId}/${link.href}`}
-              className="block bg-white/[0.06] hover:bg-white/[0.09] rounded-lg p-4 transition-colors"
+              className="block rounded-lg bg-white/[0.06] p-4 transition-colors hover:bg-white/[0.09]"
             >
-              <div className="text-white font-medium">{link.label}</div>
-              <div className="text-zinc-400 text-sm mt-0.5">{link.desc}</div>
+              <BrandIcon icon={link.icon} tone={link.tone} className="mb-3 h-11 w-11" size={20} />
+              <div className="font-medium text-white">{link.label}</div>
+              <div className="mt-0.5 text-sm text-zinc-400">{link.desc}</div>
             </Link>
           ))}
         </div>

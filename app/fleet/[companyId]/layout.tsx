@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import FleetSidebar from '@/components/fleet/FleetSidebar';
 
 interface Membership {
+  id: string;
   company_id: string;
   company_name: string;
   role: string;
@@ -27,6 +28,7 @@ export default async function FleetCompanyLayout({
   const memberships: Membership[] = await res.json();
   const membership = memberships.find((m) => m.company_id === companyId);
   if (!membership) redirect('/fleet');
+  const adminMemberships = memberships.filter((m) => ADMIN_ROLES.includes(m.role));
 
   if (!ADMIN_ROLES.includes(membership.role)) {
     return (
@@ -44,7 +46,12 @@ export default async function FleetCompanyLayout({
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <FleetSidebar companyId={companyId} companyName={membership.company_name} role={membership.role} />
+      <FleetSidebar
+        companyId={companyId}
+        companyName={membership.company_name}
+        role={membership.role}
+        memberships={adminMemberships}
+      />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );

@@ -1,8 +1,7 @@
-import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/auth';
 import { apiFetch } from '@/lib/apiFetch';
-import Link from 'next/link';
-import CreateOrgButton from './CreateOrgButton';
+import { redirect } from 'next/navigation';
+import OrganizationHub, { OrganizationSummary } from './OrganizationHub';
 
 interface Membership {
   id: string;
@@ -12,67 +11,76 @@ interface Membership {
   status: string;
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  FLEET_OWNER: 'bg-green-500/20 text-green-400',
-  FLEET_ADMIN: 'bg-blue-500/20 text-blue-400',
-  FINANCE_ADMIN: 'bg-orange-500/20 text-orange-400',
-  TEAM_MANAGER: 'bg-purple-500/20 text-purple-400',
-  EMPLOYEE: 'bg-zinc-500/20 text-zinc-400',
-};
-
 const ADMIN_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'];
+const EDIT_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN'];
+
+function readText(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+  }
+
+  return '';
+}
+
+function normalizeOrganization(membership: Membership, payload: unknown): OrganizationSummary {
+  const data =
+    payload && typeof payload === 'object' && 'company' in payload
+      ? ((payload as { company?: Record<string, unknown> }).company ?? {})
+      : ((payload as Record<string, unknown> | null) ?? {});
+
+  const address =
+    data && typeof data.address === 'object'
+      ? (data.address as Record<string, unknown>)
+      : {};
+
+  return {
+    id: membership.id,
+    companyId: membership.company_id,
+    companyName: readText(data.name, data.company_name, membership.company_name),
+    role: membership.role,
+    status: membership.status,
+    legalName: readText(data.legalName, data.legal_name),
+    billingEmail: readText(data.billingEmail, data.billing_email),
+    vatNumber: readText(data.vatNumber, data.vat_number),
+    addressLine1: readText(data.addressLine1, data.address_line1, address.line1),
+    addressCity: readText(data.addressCity, data.address_city, address.city),
+    addressCountry: readText(data.addressCountry, data.address_country, address.country),
+    paymentMode:
+      readText(data.paymentMode, data.payment_mode) === 'EMPLOYEE_PAID_REIMBURSABLE'
+        ? 'EMPLOYEE_PAID_REIMBURSABLE'
+        : 'COMPANY_PAID',
+    canEdit: EDIT_ROLES.includes(membership.role),
+  };
+}
 
 export default async function FleetRootPage() {
   await requireAuth();
+
   const res = await apiFetch('/fleet/companies/mine');
-  if (!res.ok) redirect('/auth/login');
-  const allMemberships: Membership[] = await res.json();
-
-  // Only show memberships where the user has dashboard access
-  const memberships = allMemberships.filter((m) => ADMIN_ROLES.includes(m.role));
-
-  if (memberships.length === 1) {
-    redirect(`/fleet/${memberships[0].company_id}`);
+  if (!res.ok) {
+    redirect('/auth/login');
   }
 
+  const allMemberships: Membership[] = await res.json();
+  const memberships = allMemberships.filter((membership) => ADMIN_ROLES.includes(membership.role));
+
+  const organizations = await Promise.all(
+    memberships.map(async (membership) => {
+      const detailRes = await apiFetch(`/fleet/companies/${membership.company_id}`);
+      const details = detailRes.ok ? await detailRes.json().catch(() => null) : null;
+      return normalizeOrganization(membership, details);
+    }),
+  );
+
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Your Organizations</h1>
-          <p className="text-zinc-400 mt-1">Select a fleet to manage</p>
-        </div>
-        {memberships.length === 0 ? (
-          <div className="text-center py-20 text-zinc-500">
-            <p className="text-lg">No fleet memberships</p>
-            <p className="text-sm mt-2">
-              {allMemberships.length > 0
-                ? 'You are a member of a fleet but do not have dashboard access. Use the TapCharge app to manage your charging.'
-                : 'Create a new organization or ask your fleet manager to invite you.'}
-            </p>
-            {allMemberships.length === 0 && <CreateOrgButton />}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {memberships.map((m) => (
-              <Link
-                key={m.id}
-                href={`/fleet/${m.company_id}`}
-                className="flex items-center justify-between bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-xl p-5 transition-colors group shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-              >
-                <div>
-                  <p className="text-white font-semibold text-lg">{m.company_name}</p>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded mt-1 inline-block ${ROLE_COLORS[m.role] ?? 'bg-zinc-700 text-zinc-300'}`}>
-                    {m.role.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                <svg className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            ))}
-          </div>
-        )}
+    <div className="min-h-screen px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <OrganizationHub
+          organizations={organizations}
+          totalMemberships={allMemberships.length}
+        />
       </div>
     </div>
   );
