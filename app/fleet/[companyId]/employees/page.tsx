@@ -11,8 +11,10 @@ export default async function EmployeesPage({
     apiFetch(`/fleet/companies/${companyId}/members`),
     apiFetch(`/fleet/companies/${companyId}/policies`),
   ]);
-  const members = membersRes.ok ? await membersRes.json() : [];
-  const policies = policiesRes.ok ? await policiesRes.json() : [];
+  const membersBody = membersRes.ok ? await membersRes.json() : {};
+  const members = Array.isArray(membersBody) ? membersBody : (membersBody.members ?? []);
+  const policiesBody = policiesRes.ok ? await policiesRes.json() : {};
+  const policies = Array.isArray(policiesBody) ? policiesBody : (policiesBody.policies ?? []);
 
   return <EmployeesClient companyId={companyId} initialMembers={members} policies={policies} />;
 }

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_URL } from '@/lib/api';
 
 interface Member {
   id: string;
@@ -49,10 +48,9 @@ export default function EmployeesClient({
     setInviteError('');
     setInviting(true);
     try {
-      const res = await fetch(`${API_URL}/api/fleet/companies/${companyId}/members/invite`, {
+      const res = await fetch(`/api/fleet/${companyId}/members/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
       });
       if (!res.ok) {
@@ -72,10 +70,9 @@ export default function EmployeesClient({
 
   const handleSuspend = async (memberId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
-    await fetch(`${API_URL}/api/fleet/companies/${companyId}/members/${memberId}`, {
+    await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ status: newStatus }),
     });
     router.refresh();
@@ -83,9 +80,8 @@ export default function EmployeesClient({
 
   const handleRemove = async (memberId: string) => {
     if (!confirm('Remove this member?')) return;
-    await fetch(`${API_URL}/api/fleet/companies/${companyId}/members/${memberId}`, {
+    await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
       method: 'DELETE',
-      credentials: 'include',
     });
     router.refresh();
   };

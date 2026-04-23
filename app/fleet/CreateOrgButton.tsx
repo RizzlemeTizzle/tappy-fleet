@@ -92,7 +92,7 @@ export default function CreateOrgButton() {
                 </Field>
                 <Field label="Country">
                   <input value={form.addressCountry} onChange={set('addressCountry')}
-                    className={inputCls} placeholder="NL" maxLength={2} />
+                    className={inputCls} placeholder="Netherlands" />
                 </Field>
               </div>
               <Field label="Address">
