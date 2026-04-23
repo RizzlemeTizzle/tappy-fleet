@@ -30,7 +30,7 @@ export default async function FleetCompanyLayout({
 
   if (!ADMIN_ROLES.includes(membership.role)) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">⚡</div>
           <h1 className="text-xl font-bold text-white mb-2">Dashboard not available</h1>
@@ -43,7 +43,7 @@ export default async function FleetCompanyLayout({
   }
 
   return (
-    <div className="flex h-screen bg-black overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <FleetSidebar companyId={companyId} companyName={membership.company_name} role={membership.role} />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>

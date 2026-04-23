@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { apiFetch } from '@/lib/apiFetch';
 
 interface OverviewData {
@@ -34,14 +35,14 @@ export default async function FleetOverviewPage({
       <h1 className="text-2xl font-bold text-white mb-6">Overview</h1>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div key={kpi.label} className="bg-white/[0.05] border border-white/10 rounded-xl p-5 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
             <div className="text-2xl mb-2">{kpi.icon}</div>
             <div className="text-2xl font-bold text-white">{kpi.value}</div>
             <div className="text-zinc-400 text-sm mt-1">{kpi.label}</div>
           </div>
         ))}
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <div className="bg-white/[0.05] border border-white/10 rounded-xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <h2 className="text-lg font-semibold text-white mb-4">Quick links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
@@ -49,14 +50,14 @@ export default async function FleetOverviewPage({
             { href: 'billing', label: 'View invoices', desc: 'Download PDF invoices' },
             { href: 'reports', label: 'Session reports', desc: 'Filter & export CSV' },
           ].map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
-              className="block bg-zinc-800 hover:bg-zinc-700 rounded-lg p-4 transition-colors"
+              href={`/fleet/${companyId}/${link.href}`}
+              className="block bg-white/[0.06] hover:bg-white/[0.09] rounded-lg p-4 transition-colors"
             >
               <div className="text-white font-medium">{link.label}</div>
               <div className="text-zinc-400 text-sm mt-0.5">{link.desc}</div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

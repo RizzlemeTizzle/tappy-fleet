@@ -36,7 +36,7 @@ export default async function FleetRootPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Your Organizations</h1>
@@ -58,7 +58,7 @@ export default async function FleetRootPage() {
               <Link
                 key={m.id}
                 href={`/fleet/${m.company_id}`}
-                className="flex items-center justify-between bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl p-5 transition-colors group"
+                className="flex items-center justify-between bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-xl p-5 transition-colors group shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
               >
                 <div>
                   <p className="text-white font-semibold text-lg">{m.company_name}</p>

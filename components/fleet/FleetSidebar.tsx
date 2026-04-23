@@ -30,9 +30,11 @@ export default function FleetSidebar({ companyId, companyName, role }: Props) {
   };
 
   return (
-    <aside className="w-60 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col h-screen sticky top-0">
-      <div className="p-5 border-b border-zinc-800">
-        <div className="text-[#4CAF50] font-bold text-lg">⚡ TapCharge</div>
+    <aside className="w-60 shrink-0 bg-[#070b11] border-r border-white/10 flex flex-col h-screen sticky top-0">
+      <div className="p-5 border-b border-white/10">
+        <div className="font-bold text-lg bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] bg-clip-text text-transparent">
+          ⚡ TapCharge
+        </div>
         <div className="text-zinc-400 text-sm mt-1 truncate">{companyName}</div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
@@ -47,8 +49,8 @@ export default function FleetSidebar({ companyId, companyName, role }: Props) {
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-[#4CAF50]/15 text-[#4CAF50]'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  ? 'bg-[#7c5cff]/15 text-[#7c5cff]'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/8'
               }`}
             >
               <span>{item.icon}</span>
@@ -57,10 +59,10 @@ export default function FleetSidebar({ companyId, companyName, role }: Props) {
           );
         })}
       </nav>
-      <div className="p-3 border-t border-zinc-800">
+      <div className="p-3 border-t border-white/10">
         <Link
           href="/fleet"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/8 transition-colors"
         >
           <span>🏢</span> All organizations
         </Link>
