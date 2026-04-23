@@ -35,7 +35,7 @@ export default async function FleetCompanyLayout({
           <div className="text-4xl mb-4">⚡</div>
           <h1 className="text-xl font-bold text-white mb-2">Dashboard not available</h1>
           <p className="text-zinc-400 text-sm">
-            The fleet dashboard is for fleet managers. Use the TapCharge mobile app to manage your charging.
+            The fleet dashboard is for fleet managers. Use the Tappy Charge mobile app to manage your charging.
           </p>
         </div>
       </div>

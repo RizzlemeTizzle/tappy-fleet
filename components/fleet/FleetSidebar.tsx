@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import TappyLogo from '@/components/TappyLogo';
 
 interface Props {
   companyId: string;
@@ -32,10 +33,11 @@ export default function FleetSidebar({ companyId, companyName, role }: Props) {
   return (
     <aside className="w-60 shrink-0 bg-[#070b11] border-r border-white/10 flex flex-col h-screen sticky top-0">
       <div className="p-5 border-b border-white/10">
-        <div className="font-bold text-lg bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] bg-clip-text text-transparent">
-          ⚡ TapCharge
+        <div className="flex items-center gap-3">
+          <TappyLogo size={36} />
+          <span className="font-bold text-base text-white">Tappy Charge</span>
         </div>
-        <div className="text-zinc-400 text-sm mt-1 truncate">{companyName}</div>
+        <div className="text-zinc-400 text-sm mt-2 truncate">{companyName}</div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {

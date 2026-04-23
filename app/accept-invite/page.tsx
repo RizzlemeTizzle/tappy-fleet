@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
+import TappyLogo from '@/components/TappyLogo';
 
 function AcceptInviteContent() {
   const params = useSearchParams();
@@ -142,7 +143,9 @@ export default function AcceptInvitePage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] bg-clip-text text-transparent">⚡</div>
+          <div className="flex justify-center mb-3">
+            <TappyLogo size={56} />
+          </div>
           <h1 className="text-2xl font-bold text-white">Fleet Invite</h1>
           <p className="text-zinc-400 mt-1 text-sm">You've been invited to join a company fleet</p>
         </div>
