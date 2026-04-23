@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://tappy-backend.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://tappy-shhd.onrender.com';
 
 export async function POST(req: NextRequest) {
   const { name, email, password } = await req.json();
