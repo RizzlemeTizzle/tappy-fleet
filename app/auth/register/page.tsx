@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { API_URL } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,22 +17,16 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
+      const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
         setError(body.error ?? 'Registration failed. Try again.');
         return;
       }
-      const { token } = await res.json();
-      await fetch('/api/auth/set-cookie', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
       router.push('/fleet');
     } catch {
       setError('Network error. Please try again.');

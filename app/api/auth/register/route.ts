@@ -4,22 +4,21 @@ import { cookies } from 'next/headers';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://tappy-backend.onrender.com';
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  const { name, email, password } = await req.json();
   if (!email || !password) {
     return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
   }
 
-  // Server-to-server — no CORS restriction
-  const backendRes = await fetch(`${API_URL}/api/auth/login`, {
+  const backendRes = await fetch(`${API_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ name, email, password }),
   });
 
   const body = await backendRes.json().catch(() => ({}));
   if (!backendRes.ok) {
     return NextResponse.json(
-      { error: body.error ?? 'Invalid email or password' },
+      { error: body.error ?? 'Registration failed. Try again.' },
       { status: backendRes.status }
     );
   }
