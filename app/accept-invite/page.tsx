@@ -13,10 +13,15 @@ function AcceptInviteContent() {
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me')
-      .then((r) => setAuthed(r.ok))
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        setAuthed(!!data);
+        setLoggedInEmail(data?.email ?? null);
+      })
       .catch(() => setAuthed(false));
   }, []);
 
@@ -41,7 +46,10 @@ function AcceptInviteContent() {
       }
       if (!res.ok) {
         setState('error');
-        setMessage(body.error ?? 'Failed to accept invite. It may have expired.');
+        const hint = body.error?.toLowerCase().includes('invalid')
+          ? `${body.error} Make sure you're signed in with the account the invite was sent to.`
+          : (body.error ?? 'Failed to accept invite. It may have expired.');
+        setMessage(hint);
         return;
       }
       setState('success');
@@ -83,6 +91,18 @@ function AcceptInviteContent() {
               </a>{' '}
               first.
             </p>
+          )}
+          {authed && loggedInEmail && (
+            <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm mb-1">
+              <span className="text-zinc-400">Signed in as <span className="text-white">{loggedInEmail}</span></span>
+              <a
+                href={`/api/auth/clear-cookie`}
+                onClick={async (e) => { e.preventDefault(); await fetch('/api/auth/clear-cookie', { method: 'POST' }); router.push(`/auth/login?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`); }}
+                className="text-zinc-500 hover:text-zinc-300 text-xs ml-3 shrink-0"
+              >
+                Wrong account?
+              </a>
+            </div>
           )}
           <button
             onClick={handleAccept}
