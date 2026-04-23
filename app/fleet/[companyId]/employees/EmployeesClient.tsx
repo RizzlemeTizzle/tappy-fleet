@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Member {
@@ -37,6 +37,7 @@ export default function EmployeesClient({
 }) {
   const router = useRouter();
   const [members, setMembers] = useState<Member[]>(initialMembers);
+  useEffect(() => { setMembers(initialMembers); }, [initialMembers]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('EMPLOYEE');
@@ -70,20 +71,24 @@ export default function EmployeesClient({
 
   const handleSuspend = async (memberId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
-    await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
+    const res = await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     });
-    router.refresh();
+    if (res.ok) {
+      setMembers((prev) => prev.map((m) => m.id === memberId ? { ...m, status: newStatus } : m));
+    }
   };
 
   const handleRemove = async (memberId: string) => {
     if (!confirm('Remove this member?')) return;
-    await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
+    const res = await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
       method: 'DELETE',
     });
-    router.refresh();
+    if (res.ok) {
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+    }
   };
 
   return (

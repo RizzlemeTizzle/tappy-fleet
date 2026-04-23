@@ -13,11 +13,9 @@ async function handler(
   const token = cookieStore.get('tappy_token')?.value;
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const init: RequestInit = {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-  };
+  const init: RequestInit = { method, headers: { Authorization: `Bearer ${token}` } };
   if (method !== 'DELETE') {
+    (init.headers as Record<string, string>)['Content-Type'] = 'application/json';
     init.body = JSON.stringify(await req.json().catch(() => ({})));
   }
 
