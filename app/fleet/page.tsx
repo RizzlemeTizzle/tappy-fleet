@@ -20,11 +20,16 @@ const ROLE_COLORS: Record<string, string> = {
   EMPLOYEE: 'bg-zinc-500/20 text-zinc-400',
 };
 
+const ADMIN_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'];
+
 export default async function FleetRootPage() {
   await requireAuth();
   const res = await apiFetch('/fleet/companies/mine');
   if (!res.ok) redirect('/auth/login');
-  const memberships: Membership[] = await res.json();
+  const allMemberships: Membership[] = await res.json();
+
+  // Only show memberships where the user has dashboard access
+  const memberships = allMemberships.filter((m) => ADMIN_ROLES.includes(m.role));
 
   if (memberships.length === 1) {
     redirect(`/fleet/${memberships[0].company_id}`);
@@ -40,8 +45,12 @@ export default async function FleetRootPage() {
         {memberships.length === 0 ? (
           <div className="text-center py-20 text-zinc-500">
             <p className="text-lg">No fleet memberships</p>
-            <p className="text-sm mt-2">Create a new organization or ask your fleet manager to invite you.</p>
-            <CreateOrgButton />
+            <p className="text-sm mt-2">
+              {allMemberships.length > 0
+                ? 'You are a member of a fleet but do not have dashboard access. Use the TapCharge app to manage your charging.'
+                : 'Create a new organization or ask your fleet manager to invite you.'}
+            </p>
+            {allMemberships.length === 0 && <CreateOrgButton />}
           </div>
         ) : (
           <div className="space-y-3">

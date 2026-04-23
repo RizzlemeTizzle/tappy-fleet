@@ -10,6 +10,8 @@ interface Membership {
   status: string;
 }
 
+const ADMIN_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'];
+
 export default async function FleetCompanyLayout({
   children,
   params,
@@ -26,9 +28,23 @@ export default async function FleetCompanyLayout({
   const membership = memberships.find((m) => m.company_id === companyId);
   if (!membership) redirect('/fleet');
 
+  if (!ADMIN_ROLES.includes(membership.role)) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="text-4xl mb-4">⚡</div>
+          <h1 className="text-xl font-bold text-white mb-2">Dashboard not available</h1>
+          <p className="text-zinc-400 text-sm">
+            The fleet dashboard is for fleet managers. Use the TapCharge mobile app to manage your charging.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-black overflow-hidden">
-      <FleetSidebar companyId={companyId} companyName={membership.company_name} />
+      <FleetSidebar companyId={companyId} companyName={membership.company_name} role={membership.role} />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );

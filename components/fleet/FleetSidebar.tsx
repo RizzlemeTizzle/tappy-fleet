@@ -6,18 +6,20 @@ import { usePathname, useRouter } from 'next/navigation';
 interface Props {
   companyId: string;
   companyName: string;
+  role: string;
 }
 
-const navItems = [
-  { label: 'Overview', path: '', icon: '📊' },
-  { label: 'Employees', path: '/employees', icon: '👥' },
-  { label: 'Policies', path: '/policies', icon: '📋' },
-  { label: 'Billing', path: '/billing', icon: '💳' },
-  { label: 'Reports', path: '/reports', icon: '📈' },
-  { label: 'Audit Log', path: '/audit', icon: '🔍' },
+const allNavItems = [
+  { label: 'Overview',   path: '',           icon: '📊', roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
+  { label: 'Employees',  path: '/employees', icon: '👥', roles: ['FLEET_OWNER', 'FLEET_ADMIN'] },
+  { label: 'Policies',   path: '/policies',  icon: '📋', roles: ['FLEET_OWNER', 'FLEET_ADMIN'] },
+  { label: 'Billing',    path: '/billing',   icon: '💳', roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
+  { label: 'Reports',    path: '/reports',   icon: '📈', roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
+  { label: 'Audit Log',  path: '/audit',     icon: '🔍', roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
 ];
 
-export default function FleetSidebar({ companyId, companyName }: Props) {
+export default function FleetSidebar({ companyId, companyName, role }: Props) {
+  const navItems = allNavItems.filter((item) => item.roles.includes(role));
   const pathname = usePathname();
   const router = useRouter();
   const base = `/fleet/${companyId}`;
