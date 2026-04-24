@@ -17,7 +17,7 @@ function AcceptInviteContent() {
   const [message, setMessage] = useState('');
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
-  const appUrl = 'https://tappy-charge.com/app';
+const appUrl = 'https://www.tappy-charge.com/app.html';
 
   useEffect(() => {
     fetch('/api/auth/me')
