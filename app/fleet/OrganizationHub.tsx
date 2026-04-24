@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2 } from 'lucide-react';
 import CreateOrgButton from './CreateOrgButton';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
@@ -59,7 +58,6 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
   const router = useRouter();
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -121,35 +119,6 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
       setError(t('network_error'));
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleDelete(org: OrganizationSummary) {
-    const confirmed = window.confirm(
-      `${t('btn_delete')} ${org.companyName}? This will permanently remove the organization and its fleet data.`,
-    );
-
-    if (!confirmed) return;
-
-    setDeletingCompanyId(org.companyId);
-    setError('');
-
-    try {
-      const res = await fetch(`/api/fleet/companies/${org.companyId}`, {
-        method: 'DELETE',
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setError(body.error ?? 'Failed to delete organization');
-        return;
-      }
-
-      router.refresh();
-    } catch {
-      setError(t('network_error'));
-    } finally {
-      setDeletingCompanyId(null);
     }
   }
 
@@ -257,18 +226,12 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
                   {t('hub_manage_details')}
                 </button>
               )}
-              {org.canDelete && (
-                <button
-                  type="button"
-                  onClick={() => handleDelete(org)}
-                  disabled={deletingCompanyId === org.companyId}
-                  className={fleetButtonClass('danger')}
-                >
-                  <Trash2 size={16} strokeWidth={2.2} />
-                  {deletingCompanyId === org.companyId ? 'Deleting...' : t('btn_delete')}
-                </button>
-              )}
             </div>
+            {org.role === 'FLEET_OWNER' && (
+              <p className="mt-4 text-sm text-zinc-400">
+                Organization removal is handled by support. Contact the Tappy team if this workspace needs to be deleted.
+              </p>
+            )}
           </article>
         ))}
       </div>

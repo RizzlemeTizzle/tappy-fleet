@@ -52,7 +52,7 @@ function normalizeOrganization(membership: Membership, payload: unknown): Organi
         ? 'EMPLOYEE_PAID_REIMBURSABLE'
         : 'COMPANY_PAID',
     canEdit: EDIT_ROLES.includes(membership.role),
-    canDelete: membership.role === 'FLEET_OWNER',
+    canDelete: false,
   };
 }
 
