@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pencil, Plus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fleetButtonClass } from '@/lib/fleet-ui';
@@ -44,6 +44,61 @@ const STATUS_STYLES: Record<string, string> = {
 
 const inputCls =
   'w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-[#33d6c5] focus:outline-none';
+
+function DepartmentCombobox({
+  value,
+  onChange,
+  departments,
+  placeholder = 'e.g. Engineering',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  departments: Department[];
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const suggestions = departments.filter(
+    (d) => d.name.toLowerCase().includes(value.toLowerCase()),
+  );
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        className={inputCls}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-zinc-700 bg-zinc-800 shadow-lg">
+          {suggestions.map((d) => (
+            <li
+              key={d.id}
+              onMouseDown={(e) => { e.preventDefault(); onChange(d.name); setOpen(false); }}
+              className="cursor-pointer px-3 py-2 text-sm text-white hover:bg-zinc-700"
+            >
+              {d.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function EmployeesClient({
   companyId,
@@ -261,17 +316,8 @@ export default function EmployeesClient({
     if (res.ok) setMembers((prev) => prev.filter((m) => m.id !== memberId));
   };
 
-  const departmentListId = `dept-list-${companyId}`;
-
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      {/* Department name datalist — shared between invite and edit modals */}
-      <datalist id={departmentListId}>
-        {departments.map((d) => (
-          <option key={d.id} value={d.name} />
-        ))}
-      </datalist>
-
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">{t('nav_employees')}</h1>
         <button
@@ -492,14 +538,11 @@ export default function EmployeesClient({
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm text-zinc-400">Department</label>
-                <input
-                  type="text"
+                <label className="mb-1.5 block text-sm text-zinc-400">Department <span className="text-zinc-600">(optional)</span></label>
+                <DepartmentCombobox
                   value={inviteDepartmentName}
-                  onChange={(e) => setInviteDepartmentName(e.target.value)}
-                  list={departmentListId}
-                  className={inputCls}
-                  placeholder="e.g. Engineering"
+                  onChange={setInviteDepartmentName}
+                  departments={departments}
                 />
               </div>
               <div>
@@ -594,14 +637,11 @@ export default function EmployeesClient({
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm text-zinc-400">Department</label>
-                <input
-                  type="text"
+                <label className="mb-1.5 block text-sm text-zinc-400">Department <span className="text-zinc-600">(optional)</span></label>
+                <DepartmentCombobox
                   value={editForm.departmentName}
-                  onChange={(e) => setEditForm((f) => ({ ...f, departmentName: e.target.value }))}
-                  list={departmentListId}
-                  className={inputCls}
-                  placeholder="e.g. Engineering"
+                  onChange={(v) => setEditForm((f) => ({ ...f, departmentName: v }))}
+                  departments={departments}
                 />
               </div>
               <div>
