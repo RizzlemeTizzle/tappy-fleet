@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { Building2, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 export default function CreateOrgButton() {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,12 +39,12 @@ export default function CreateOrgButton() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? 'Failed to create organization');
+        setError(body.error ?? t('create_org_error'));
         return;
       }
       router.push(`/fleet/${body.company.id}`);
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('network_error'));
     } finally {
       setLoading(false);
     }
@@ -51,10 +54,10 @@ export default function CreateOrgButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
+        className={fleetButtonClass('primary', 'lg', 'mt-6')}
       >
         <Plus size={16} strokeWidth={2.3} />
-        Create Organization
+        {t('create_org_btn')}
       </button>
 
       {open && (
@@ -65,7 +68,7 @@ export default function CreateOrgButton() {
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#33d6c5]/20 bg-[#33d6c5]/10 text-[#7ce9de]">
                   <Building2 size={18} strokeWidth={2.1} />
                 </span>
-                <h2 className="text-lg font-bold text-white">Create Organization</h2>
+                <h2 className="text-lg font-bold text-white">{t('create_org_title')}</h2>
               </div>
               <button
                 onClick={() => setOpen(false)}
@@ -82,51 +85,51 @@ export default function CreateOrgButton() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <Field label="Company Name *">
+              <Field label={`${t('field_company_name')} *`}>
                 <input value={form.name} onChange={set('name')} required className={inputCls} placeholder="Acme EV Fleet" />
               </Field>
-              <Field label="Legal Name *">
+              <Field label={`${t('field_legal_name')} *`}>
                 <input value={form.legalName} onChange={set('legalName')} required className={inputCls} placeholder="Acme Inc." />
               </Field>
-              <Field label="Billing Email *">
+              <Field label={`${t('field_billing_email')} *`}>
                 <input type="email" value={form.billingEmail} onChange={set('billingEmail')} required className={inputCls} placeholder="billing@acme.com" />
               </Field>
-              <Field label="VAT Number">
+              <Field label={t('field_vat')}>
                 <input value={form.vatNumber} onChange={set('vatNumber')} className={inputCls} placeholder="NL123456789B01" />
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="City">
+                <Field label={t('field_city')}>
                   <input value={form.addressCity} onChange={set('addressCity')} className={inputCls} placeholder="Amsterdam" />
                 </Field>
-                <Field label="Country">
+                <Field label={t('field_country')}>
                   <input value={form.addressCountry} onChange={set('addressCountry')} className={inputCls} placeholder="Netherlands" />
                 </Field>
               </div>
-              <Field label="Address">
+              <Field label={t('field_address')}>
                 <input value={form.addressLine1} onChange={set('addressLine1')} className={inputCls} placeholder="Herengracht 1" />
               </Field>
-              <Field label="Payment Mode">
+              <Field label={t('field_payment_mode')}>
                 <select value={form.paymentMode} onChange={set('paymentMode')} className={inputCls}>
-                  <option value="COMPANY_PAID">Company Paid</option>
-                  <option value="EMPLOYEE_PAID_REIMBURSABLE">Employee Reimbursable</option>
+                  <option value="COMPANY_PAID">{t('payment_company')}</option>
+                  <option value="EMPLOYEE_PAID_REIMBURSABLE">{t('payment_reimbursable')}</option>
                 </select>
               </Field>
 
               <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 rounded-lg border border-zinc-700 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 rounded-lg bg-[#33d6c5] py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4] disabled:opacity-60"
-                >
-                  {loading ? 'Creating...' : 'Create'}
-                </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className={fleetButtonClass('secondary', 'md', 'flex-1')}
+              >
+                {t('btn_cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={fleetButtonClass('primary', 'md', 'flex-1')}
+              >
+                {loading ? t('create_org_creating') : t('create_org_submit')}
+              </button>
               </div>
             </form>
           </div>

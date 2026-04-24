@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Member {
   id: string;
@@ -102,7 +103,7 @@ export default function EmployeesClient({
         <h1 className="text-2xl font-bold text-white">Employees</h1>
         <button
           onClick={() => setShowInvite(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
+          className={fleetButtonClass('primary')}
         >
           <Plus size={16} strokeWidth={2.3} />
           Invite member
@@ -135,14 +136,14 @@ export default function EmployeesClient({
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleSuspend(m.id, m.status)}
-                      className="text-xs text-zinc-400 transition-colors hover:text-yellow-400"
+                      className={fleetButtonClass('secondary', 'sm')}
                     >
                       {m.status === 'SUSPENDED' ? 'Activate' : 'Suspend'}
                     </button>
                     {m.role !== 'FLEET_OWNER' && (
                       <button
                         onClick={() => handleRemove(m.id)}
-                        className="text-xs text-zinc-400 transition-colors hover:text-red-400"
+                        className={fleetButtonClass('danger', 'sm')}
                       >
                         Remove
                       </button>
@@ -206,14 +207,14 @@ export default function EmployeesClient({
                 <button
                   type="button"
                   onClick={() => setShowInvite(false)}
-                  className="flex-1 rounded-lg bg-zinc-800 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
+                  className={fleetButtonClass('secondary', 'md', 'flex-1')}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={inviting}
-                  className="flex-1 rounded-lg bg-[#33d6c5] py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4] disabled:opacity-60"
+                  className={fleetButtonClass('primary', 'md', 'flex-1')}
                 >
                   {inviting ? 'Sending...' : 'Send invite'}
                 </button>

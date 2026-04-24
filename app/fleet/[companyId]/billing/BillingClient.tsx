@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Invoice {
   id: string;
@@ -87,7 +88,7 @@ export default function BillingClient({
                   <button
                     onClick={() => downloadPdf(inv.id)}
                     disabled={downloading === inv.id}
-                    className="text-xs text-[#4CAF50] hover:underline disabled:opacity-50"
+                    className={fleetButtonClass('secondary', 'sm')}
                   >
                     {downloading === inv.id ? 'Downloading...' : 'Download PDF'}
                   </button>

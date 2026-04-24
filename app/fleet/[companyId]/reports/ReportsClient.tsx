@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Download, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import DatePicker from './DatePicker';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Session {
   session_id: string;
@@ -83,7 +84,7 @@ export default function ReportsClient({
         <button
           onClick={exportCsv}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
+          className={fleetButtonClass('secondary')}
         >
           <Download size={16} strokeWidth={2.2} />
           {exporting ? 'Exporting...' : 'Export CSV'}
@@ -95,7 +96,7 @@ export default function ReportsClient({
         <DatePicker label="To" value={toDate} onChange={setToDate} />
         <button
           onClick={applyFilter}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
+          className={fleetButtonClass('primary')}
         >
           <Filter size={16} strokeWidth={2.2} />
           Apply

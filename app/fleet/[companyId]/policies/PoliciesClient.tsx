@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/api';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Policy {
   id: string;
@@ -122,7 +123,7 @@ export default function PoliciesClient({
         <h1 className="text-2xl font-bold text-white">Charging Policies</h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
+          className={fleetButtonClass('primary')}
         >
           <Plus size={16} strokeWidth={2.3} />
           New policy
@@ -155,10 +156,10 @@ export default function PoliciesClient({
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => openEdit(p)} className="text-sm text-zinc-400 transition-colors hover:text-white">
+                <button onClick={() => openEdit(p)} className={fleetButtonClass('secondary', 'sm')}>
                   Edit
                 </button>
-                <button onClick={() => handleDelete(p.id)} className="text-sm text-zinc-400 transition-colors hover:text-red-400">
+                <button onClick={() => handleDelete(p.id)} className={fleetButtonClass('danger', 'sm')}>
                   Delete
                 </button>
               </div>
@@ -269,10 +270,10 @@ export default function PoliciesClient({
                 </label>
               </div>
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowEditor(false)} className="flex-1 rounded-lg bg-zinc-800 py-2 text-sm text-zinc-300 hover:bg-zinc-700">
+                <button type="button" onClick={() => setShowEditor(false)} className={fleetButtonClass('secondary', 'md', 'flex-1')}>
                   Cancel
                 </button>
-                <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-[#33d6c5] py-2 text-sm font-semibold text-black disabled:opacity-60">
+                <button type="submit" disabled={saving} className={fleetButtonClass('primary', 'md', 'flex-1')}>
                   {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>

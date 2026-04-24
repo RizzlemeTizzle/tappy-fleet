@@ -5,8 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import TappyLogo from '@/components/TappyLogo';
+import { useT } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 function LoginForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next') ?? '/fleet';
@@ -27,12 +31,12 @@ function LoginForm() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? 'Invalid email or password');
+        setError(body.error ?? t('login_invalid'));
         return;
       }
       router.push(next);
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('network_error'));
     } finally {
       setLoading(false);
     }
@@ -45,8 +49,8 @@ function LoginForm() {
           <div className="flex justify-center mb-3">
             <TappyLogo size={56} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Tappy Charge Fleet</h1>
-          <p className="text-zinc-400 mt-1 text-sm">Sign in to manage your fleet</p>
+          <h1 className="text-2xl font-bold text-white">{t('login_title')}</h1>
+          <p className="text-zinc-400 mt-1 text-sm">{t('login_subtitle')}</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -55,7 +59,7 @@ function LoginForm() {
             </div>
           )}
           <div>
-            <label className="text-sm text-zinc-400 block mb-1.5">Email</label>
+            <label className="text-sm text-zinc-400 block mb-1.5">{t('label_email')}</label>
             <input
               type="email"
               value={email}
@@ -66,7 +70,7 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="text-sm text-zinc-400 block mb-1.5">Password</label>
+            <label className="text-sm text-zinc-400 block mb-1.5">{t('label_password')}</label>
             <input
               type="password"
               value={password}
@@ -79,20 +83,23 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-opacity disabled:opacity-60 text-sm"
+            className={fleetButtonClass('primary', 'lg', 'w-full')}
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t('login_signing_in') : t('login_cta')}
           </button>
         </form>
         <p className="text-center text-zinc-500 text-sm">
-          No account?{' '}
+          {t('login_no_account')}{' '}
           <Link
             href={`/auth/register?next=${encodeURIComponent(next)}`}
             className="text-[#7c5cff] hover:underline"
           >
-            Register
+            {t('login_register_link')}
           </Link>
         </p>
+        <div className="flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   );

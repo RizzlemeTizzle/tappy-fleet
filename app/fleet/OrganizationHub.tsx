@@ -3,7 +3,10 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import CreateOrgButton from './CreateOrgButton';
+import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 export interface OrganizationSummary {
   id: string;
@@ -19,6 +22,7 @@ export interface OrganizationSummary {
   addressCountry: string;
   paymentMode: 'COMPANY_PAID' | 'EMPLOYEE_PAID_REIMBURSABLE';
   canEdit: boolean;
+  canDelete: boolean;
 }
 
 interface Props {
@@ -51,9 +55,11 @@ function buildForm(org: OrganizationSummary) {
 }
 
 export default function OrganizationHub({ organizations, totalMemberships }: Props) {
+  const t = useT();
   const router = useRouter();
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -105,27 +111,54 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
       const body = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(body.error ?? 'Failed to update organization details.');
+        setError(body.error ?? t('org_save_error'));
         return;
       }
 
       setEditingCompanyId(null);
       router.refresh();
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('network_error'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete(org: OrganizationSummary) {
+    const confirmed = window.confirm(
+      `${t('btn_delete')} ${org.companyName}? This will permanently remove the organization and its fleet data.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingCompanyId(org.companyId);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/fleet/${org.companyId}`, {
+        method: 'DELETE',
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(body.error ?? 'Failed to delete organization');
+        return;
+      }
+
+      router.refresh();
+    } catch {
+      setError(t('network_error'));
+    } finally {
+      setDeletingCompanyId(null);
     }
   }
 
   if (organizations.length === 0) {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-8 text-center shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-        <p className="text-lg font-semibold text-white">No fleet organizations yet</p>
+        <p className="text-lg font-semibold text-white">{t('hub_no_orgs_title')}</p>
         <p className="mt-2 text-sm text-zinc-400">
-          {totalMemberships > 0
-            ? 'You are a member of a fleet, but you do not have dashboard access for it.'
-            : 'Create your first organization or ask your fleet manager to invite you.'}
+          {totalMemberships > 0 ? t('hub_no_orgs_member') : t('hub_no_orgs_empty')}
         </p>
         {totalMemberships === 0 && (
           <div className="mt-6 flex justify-center">
@@ -139,26 +172,33 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
   return (
     <>
       <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.16),rgba(11,15,23,0.9)_45%,rgba(51,214,197,0.08))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.4)] sm:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#33d6c5]">
-              Fleet workspace
+              {t('hub_eyebrow')}
             </p>
             <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              All organizations
+              {t('hub_title')}
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-zinc-300 sm:text-base">
-              Switch between fleets, update company details, and add another organization from one place.
+              {t('hub_subtitle')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-zinc-300">
-              {organizations.length} active {organizations.length === 1 ? 'organization' : 'organizations'}
+            <div className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-zinc-300">
+              {organizations.length}{' '}
+              {organizations.length === 1 ? t('active_org_singular') : t('active_org_plural')}
             </div>
             <CreateOrgButton />
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         {organizations.map((org) => (
@@ -182,21 +222,21 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-400">
                 {org.paymentMode === 'EMPLOYEE_PAID_REIMBURSABLE'
-                  ? 'Reimbursable'
-                  : 'Company paid'}
+                  ? t('payment_reimbursable')
+                  : t('payment_company')}
               </div>
             </div>
 
             <dl className="mt-6 space-y-3 text-sm">
-              <MetaRow label="Legal name" value={org.legalName || 'Not set'} />
-              <MetaRow label="Billing email" value={org.billingEmail || 'Not set'} />
-              <MetaRow label="VAT number" value={org.vatNumber || 'Not set'} />
+              <MetaRow label={t('field_legal_name')} value={org.legalName || t('not_set')} />
+              <MetaRow label={t('field_billing_email')} value={org.billingEmail || t('not_set')} />
+              <MetaRow label={t('field_vat')} value={org.vatNumber || t('not_set')} />
               <MetaRow
-                label="Address"
+                label={t('field_address')}
                 value={
                   [org.addressLine1, org.addressCity, org.addressCountry]
                     .filter(Boolean)
-                    .join(', ') || 'Not set'
+                    .join(', ') || t('not_set')
                 }
               />
             </dl>
@@ -204,17 +244,28 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={`/fleet/${org.companyId}`}
-                className="inline-flex items-center rounded-lg bg-[#33d6c5] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4]"
+                className={fleetButtonClass('primary')}
               >
-                Open fleet
+                {t('hub_open_fleet')}
               </Link>
               {org.canEdit && (
                 <button
                   type="button"
                   onClick={() => openEditor(org)}
-                  className="inline-flex items-center rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.08]"
+                  className={fleetButtonClass('secondary')}
                 >
-                  Manage details
+                  {t('hub_manage_details')}
+                </button>
+              )}
+              {org.canDelete && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(org)}
+                  disabled={deletingCompanyId === org.companyId}
+                  className={fleetButtonClass('danger')}
+                >
+                  <Trash2 size={16} strokeWidth={2.2} />
+                  {deletingCompanyId === org.companyId ? 'Deleting...' : t('btn_delete')}
                 </button>
               )}
             </div>
@@ -227,16 +278,16 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
           <div className="max-h-[90vh] w-full max-w-xl overflow-auto rounded-[28px] border border-white/10 bg-[#0b0f17] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Manage organization</h2>
+                <h2 className="text-xl font-bold text-white">{t('hub_manage_modal_title')}</h2>
                 <p className="mt-1 text-sm text-zinc-400">{editingOrg.companyName}</p>
               </div>
-              <button
-                type="button"
-                onClick={closeEditor}
-                className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"
-              >
-                Close
-              </button>
+                <button
+                  type="button"
+                  onClick={closeEditor}
+                  className={fleetButtonClass('subtle', 'sm', 'min-h-0 rounded-lg px-3 py-2 text-zinc-400')}
+                >
+                  {t('btn_close')}
+                </button>
             </div>
 
             {error && (
@@ -246,33 +297,33 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
             )}
 
             <form onSubmit={handleSave} className="mt-6 space-y-4">
-              <Field label="Company name *">
+              <Field label={`${t('field_company_name')} *`}>
                 <input value={form.name} onChange={setField('name')} required className={inputCls} placeholder="Acme EV Fleet" />
               </Field>
-              <Field label="Legal name *">
+              <Field label={`${t('field_legal_name')} *`}>
                 <input value={form.legalName} onChange={setField('legalName')} required className={inputCls} placeholder="Acme B.V." />
               </Field>
-              <Field label="Billing email *">
+              <Field label={`${t('field_billing_email')} *`}>
                 <input type="email" value={form.billingEmail} onChange={setField('billingEmail')} required className={inputCls} placeholder="billing@acme.com" />
               </Field>
-              <Field label="VAT number">
+              <Field label={t('field_vat')}>
                 <input value={form.vatNumber} onChange={setField('vatNumber')} className={inputCls} placeholder="NL123456789B01" />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="City">
+                <Field label={t('field_city')}>
                   <input value={form.addressCity} onChange={setField('addressCity')} className={inputCls} placeholder="Amsterdam" />
                 </Field>
-                <Field label="Country">
+                <Field label={t('field_country')}>
                   <input value={form.addressCountry} onChange={setField('addressCountry')} className={inputCls} placeholder="Netherlands" />
                 </Field>
               </div>
-              <Field label="Address">
+              <Field label={t('field_address')}>
                 <input value={form.addressLine1} onChange={setField('addressLine1')} className={inputCls} placeholder="Herengracht 1" />
               </Field>
-              <Field label="Payment mode">
+              <Field label={t('field_payment_mode')}>
                 <select value={form.paymentMode} onChange={setField('paymentMode')} className={inputCls}>
-                  <option value="COMPANY_PAID">Company paid</option>
-                  <option value="EMPLOYEE_PAID_REIMBURSABLE">Employee reimbursable</option>
+                  <option value="COMPANY_PAID">{t('payment_company')}</option>
+                  <option value="EMPLOYEE_PAID_REIMBURSABLE">{t('payment_reimbursable')}</option>
                 </select>
               </Field>
 
@@ -280,16 +331,16 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
                 <button
                   type="button"
                   onClick={closeEditor}
-                  className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/5"
+                  className={fleetButtonClass('secondary')}
                 >
-                  Cancel
+                  {t('btn_cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-lg bg-[#33d6c5] px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#5fe2d4] disabled:opacity-60"
+                  className={fleetButtonClass('primary')}
                 >
-                  {saving ? 'Saving...' : 'Save changes'}
+                  {saving ? t('btn_saving') : t('btn_save_changes')}
                 </button>
               </div>
             </form>

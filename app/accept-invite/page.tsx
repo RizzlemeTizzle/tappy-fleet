@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { BrandIcon } from '@/components/BrandIcon';
 import TappyLogo from '@/components/TappyLogo';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 function AcceptInviteContent() {
   const params = useSearchParams();
@@ -17,7 +18,7 @@ function AcceptInviteContent() {
   const [message, setMessage] = useState('');
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
-const appUrl = 'https://www.tappy-charge.com/app.html';
+  const appUrl = 'https://www.tappy-charge.com/app.html';
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -125,7 +126,7 @@ const appUrl = 'https://www.tappy-charge.com/app.html';
           <button
             onClick={handleAccept}
             disabled={!authed}
-            className="w-full rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className={fleetButtonClass('primary', 'lg', 'w-full disabled:opacity-40')}
           >
             Accept invite
           </button>
@@ -150,7 +151,7 @@ const appUrl = 'https://www.tappy-charge.com/app.html';
           </p>
           <a
             href={appUrl}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className={fleetButtonClass('primary', 'lg', 'w-full')}
           >
             Open app page
           </a>

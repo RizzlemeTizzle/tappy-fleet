@@ -1,9 +1,8 @@
-import { ShieldAlert } from 'lucide-react';
 import { requireAuth } from '@/lib/auth';
 import { apiFetch } from '@/lib/apiFetch';
 import { redirect } from 'next/navigation';
-import { BrandIcon } from '@/components/BrandIcon';
 import FleetSidebar from '@/components/fleet/FleetSidebar';
+import { DashboardUnavailable } from './DashboardUnavailable';
 
 interface Membership {
   id: string;
@@ -33,19 +32,7 @@ export default async function FleetCompanyLayout({
   const adminMemberships = memberships.filter((m) => ADMIN_ROLES.includes(m.role));
 
   if (!ADMIN_ROLES.includes(membership.role)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="max-w-sm text-center">
-          <div className="mb-4 flex justify-center">
-            <BrandIcon icon={ShieldAlert} tone="violet" className="h-16 w-16" size={28} />
-          </div>
-          <h1 className="mb-2 text-xl font-bold text-white">Dashboard not available</h1>
-          <p className="text-sm text-zinc-400">
-            The fleet dashboard is for fleet managers. Use the Tappy Charge mobile app to manage your charging.
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardUnavailable />;
   }
 
   return (

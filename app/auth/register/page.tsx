@@ -4,8 +4,12 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import TappyLogo from '@/components/TappyLogo';
+import { useT } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { fleetButtonClass } from '@/lib/fleet-ui';
 
 function RegisterForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next') ?? '/fleet';
@@ -28,12 +32,12 @@ function RegisterForm() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(body.error ?? 'Registration failed. Try again.');
+        setError(body.error ?? t('register_failed'));
         return;
       }
       router.push(next);
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('network_error'));
     } finally {
       setLoading(false);
     }
@@ -46,8 +50,8 @@ function RegisterForm() {
           <div className="flex justify-center mb-3">
             <TappyLogo size={56} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-zinc-400 mt-1 text-sm">Get started with Tappy Charge Fleet</p>
+          <h1 className="text-2xl font-bold text-white">{t('register_title')}</h1>
+          <p className="text-zinc-400 mt-1 text-sm">{t('register_subtitle')}</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -56,18 +60,18 @@ function RegisterForm() {
             </div>
           )}
           <div>
-            <label className="text-sm text-zinc-400 block mb-1.5">Name</label>
+            <label className="text-sm text-zinc-400 block mb-1.5">{t('label_name')}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
               className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-[#7c5cff] text-sm"
-              placeholder="Your full name"
+              placeholder={t('register_name_placeholder')}
             />
           </div>
           <div>
-            <label className="text-sm text-zinc-400 block mb-1.5">Email</label>
+            <label className="text-sm text-zinc-400 block mb-1.5">{t('label_email')}</label>
             <input
               type="email"
               value={email}
@@ -78,7 +82,7 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label className="text-sm text-zinc-400 block mb-1.5">Password</label>
+            <label className="text-sm text-zinc-400 block mb-1.5">{t('label_password')}</label>
             <input
               type="password"
               value={password}
@@ -86,26 +90,29 @@ function RegisterForm() {
               required
               minLength={8}
               className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-[#7c5cff] text-sm"
-              placeholder="Min. 8 characters"
+              placeholder={t('register_password_placeholder')}
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#7c5cff] to-[#33d6c5] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-opacity disabled:opacity-60 text-sm"
+            className={fleetButtonClass('primary', 'lg', 'w-full')}
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t('register_creating') : t('register_cta')}
           </button>
         </form>
         <p className="text-center text-zinc-500 text-sm">
-          Already have an account?{' '}
+          {t('register_have_account')}{' '}
           <Link
             href={`/auth/login?next=${encodeURIComponent(next)}`}
             className="text-[#7c5cff] hover:underline"
           >
-            Sign in
+            {t('register_signin_link')}
           </Link>
         </p>
+        <div className="flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   );

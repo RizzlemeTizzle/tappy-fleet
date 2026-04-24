@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://tappy-shhd.onrender.
 async function proxyCompany(
   req: NextRequest,
   companyId: string,
-  method: 'GET' | 'PUT',
+  method: 'GET' | 'PUT' | 'DELETE',
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get('tappy_token')?.value;
@@ -46,4 +46,12 @@ export async function PUT(
 ) {
   const { companyId } = await params;
   return proxyCompany(req, companyId, 'PUT');
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ companyId: string }> },
+) {
+  const { companyId } = await params;
+  return proxyCompany(req, companyId, 'DELETE');
 }
