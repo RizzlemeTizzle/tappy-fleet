@@ -85,7 +85,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
                 <ArrowRightLeft size={14} />
               </button>
               {showOrgMenu && (
-                <div className="absolute right-0 top-11 z-30 w-64 rounded-2xl border border-white/10 bg-[#0b1017] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                <div className="absolute left-0 top-11 z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-[#0b1017] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
                   <div className="px-2 pb-2 pt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                     {t('label_switch_org')}
                   </div>
@@ -148,7 +148,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
               <BrandIcon
                 icon={item.icon}
                 size={16}
-                tone={isActive ? 'violet' : 'muted'}
+                tone={isActive ? 'active' : 'muted'}
                 className="h-9 w-9"
               />
               {t(item.key)}

@@ -12,13 +12,13 @@ const buttonSizes = {
 
 const buttonVariants = {
   primary:
-    'border-transparent bg-[linear-gradient(135deg,#8f7dff_0%,#6d89ff_48%,#33d6c5_100%)] text-white shadow-[0_16px_34px_rgba(89,115,255,0.28)] hover:-translate-y-0.5 hover:brightness-110',
+    'border-transparent bg-[linear-gradient(135deg,#a798ff_0%,#88a7ff_48%,#5ee6d7_100%)] text-black shadow-[0_16px_34px_rgba(89,115,255,0.28)] hover:-translate-y-0.5 hover:brightness-105',
   secondary:
-    'border-white/12 bg-[linear-gradient(135deg,rgba(143,125,255,0.18),rgba(109,137,255,0.14),rgba(51,214,197,0.12))] text-white hover:-translate-y-0.5 hover:border-[#8f7dff]/35 hover:bg-[linear-gradient(135deg,rgba(143,125,255,0.26),rgba(109,137,255,0.2),rgba(51,214,197,0.16))]',
+    'border-transparent bg-[linear-gradient(135deg,#c7bdff_0%,#b5c7ff_48%,#9df0e7_100%)] text-black hover:-translate-y-0.5 hover:brightness-105',
   subtle:
     'border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
   danger:
-    'border-red-400/20 bg-[linear-gradient(135deg,rgba(255,92,139,0.24),rgba(255,134,91,0.18))] text-white hover:-translate-y-0.5 hover:border-red-300/30 hover:brightness-110',
+    'border-transparent bg-[linear-gradient(135deg,#ff9cc0_0%,#ffb490_100%)] text-black hover:-translate-y-0.5 hover:brightness-105',
 } as const;
 
 type FleetButtonSize = keyof typeof buttonSizes;

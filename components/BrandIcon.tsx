@@ -1,12 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
 
-type Tone = 'violet' | 'teal' | 'mixed' | 'muted';
+type Tone = 'violet' | 'teal' | 'mixed' | 'muted' | 'active';
 
 const TONE_STYLES: Record<Tone, string> = {
   violet: 'border-[#7c5cff]/25 bg-[#7c5cff]/12 text-[#9f89ff]',
   teal: 'border-[#33d6c5]/25 bg-[#33d6c5]/12 text-[#7ce9de]',
   mixed: 'border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.18),rgba(51,214,197,0.12))] text-white',
   muted: 'border-white/10 bg-white/[0.04] text-zinc-300',
+  active: 'border-white/16 bg-white/10 text-white',
 };
 
 export function BrandIcon({
