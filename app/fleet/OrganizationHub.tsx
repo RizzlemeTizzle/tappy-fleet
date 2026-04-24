@@ -49,7 +49,6 @@ function buildForm(org: OrganizationSummary) {
     addressLine1: org.addressLine1,
     addressCity: org.addressCity,
     addressCountry: org.addressCountry,
-    paymentMode: org.paymentMode,
   };
 }
 
@@ -67,7 +66,6 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     addressLine1: '',
     addressCity: '',
     addressCountry: '',
-    paymentMode: 'COMPANY_PAID' as 'COMPANY_PAID' | 'EMPLOYEE_PAID_REIMBURSABLE',
   });
 
   const editingOrg = useMemo(
@@ -189,11 +187,6 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
                   </span>
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-400">
-                {org.paymentMode === 'EMPLOYEE_PAID_REIMBURSABLE'
-                  ? t('payment_reimbursable')
-                  : t('payment_company')}
-              </div>
             </div>
 
             <dl className="mt-6 space-y-3 text-sm">
@@ -283,13 +276,6 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
               <Field label={t('field_address')}>
                 <input value={form.addressLine1} onChange={setField('addressLine1')} className={inputCls} placeholder="Herengracht 1" />
               </Field>
-              <Field label={t('field_payment_mode')}>
-                <select value={form.paymentMode} onChange={setField('paymentMode')} className={inputCls}>
-                  <option value="COMPANY_PAID">{t('payment_company')}</option>
-                  <option value="EMPLOYEE_PAID_REIMBURSABLE">{t('payment_reimbursable')}</option>
-                </select>
-              </Field>
-
               <div className="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
                 <button
                   type="button"

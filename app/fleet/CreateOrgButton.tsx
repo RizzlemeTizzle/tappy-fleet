@@ -20,7 +20,6 @@ export default function CreateOrgButton({ className = '' }: { className?: string
     addressLine1: '',
     addressCity: '',
     addressCountry: '',
-    paymentMode: 'COMPANY_PAID' as 'COMPANY_PAID' | 'EMPLOYEE_PAID_REIMBURSABLE',
   });
 
   const set =
@@ -108,13 +107,6 @@ export default function CreateOrgButton({ className = '' }: { className?: string
               <Field label={t('field_address')}>
                 <input value={form.addressLine1} onChange={set('addressLine1')} className={inputCls} placeholder="Herengracht 1" />
               </Field>
-              <Field label={t('field_payment_mode')}>
-                <select value={form.paymentMode} onChange={set('paymentMode')} className={inputCls}>
-                  <option value="COMPANY_PAID">{t('payment_company')}</option>
-                  <option value="EMPLOYEE_PAID_REIMBURSABLE">{t('payment_reimbursable')}</option>
-                </select>
-              </Field>
-
               <div className="flex gap-3 pt-2">
               <button
                 type="button"
