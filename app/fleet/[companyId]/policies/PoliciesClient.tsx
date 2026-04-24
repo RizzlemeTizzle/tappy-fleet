@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fleetButtonClass } from '@/lib/fleet-ui';
@@ -36,7 +36,10 @@ export default function PoliciesClient({
   initialPolicies: Policy[];
 }) {
   const router = useRouter();
-  const [policies] = useState<Policy[]>(initialPolicies);
+  const [policies, setPolicies] = useState<Policy[]>(initialPolicies);
+  useEffect(() => {
+    setPolicies(initialPolicies);
+  }, [initialPolicies]);
   const [showEditor, setShowEditor] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyPolicy);
@@ -92,7 +95,22 @@ export default function PoliciesClient({
         setError(body.error ?? 'Save failed');
         return;
       }
+      const body = await res.json().catch(() => null);
+      const savedPolicy =
+        body && typeof body === 'object' && 'policy' in body
+          ? (body.policy as Policy)
+          : (body as Policy | null);
+      if (savedPolicy?.id) {
+        setPolicies((current) => {
+          if (editingId) {
+            return current.map((policy) => (policy.id === savedPolicy.id ? savedPolicy : policy));
+          }
+          return [savedPolicy, ...current];
+        });
+      }
       setShowEditor(false);
+      setEditingId(null);
+      setForm(emptyPolicy);
       router.refresh();
     } catch {
       setError('Network error');
@@ -111,6 +129,7 @@ export default function PoliciesClient({
       alert(body.error ?? 'Delete failed');
       return;
     }
+    setPolicies((current) => current.filter((policy) => policy.id !== id));
     router.refresh();
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, Filter } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import DatePicker from './DatePicker';
@@ -46,6 +46,11 @@ export default function ReportsClient({
   const [fromDate, setFromDate] = useState(from);
   const [toDate, setToDate] = useState(to);
   const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    setFromDate(from);
+    setToDate(to);
+  }, [from, to]);
 
   const exportCsv = async () => {
     setExporting(true);

@@ -103,7 +103,7 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     setError('');
 
     try {
-      const res = await fetch(`/api/fleet/${editingOrg.companyId}`, {
+      const res = await fetch(`/api/fleet/companies/${editingOrg.companyId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -135,7 +135,7 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     setError('');
 
     try {
-      const res = await fetch(`/api/fleet/${org.companyId}`, {
+      const res = await fetch(`/api/fleet/companies/${org.companyId}`, {
         method: 'DELETE',
       });
       const body = await res.json().catch(() => ({}));

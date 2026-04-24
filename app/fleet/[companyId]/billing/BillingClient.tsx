@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Invoice {
@@ -34,7 +34,10 @@ export default function BillingClient({
   companyId: string;
   initialInvoices: Invoice[];
 }) {
-  const [invoices] = useState<Invoice[]>(initialInvoices);
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  useEffect(() => {
+    setInvoices(initialInvoices);
+  }, [initialInvoices]);
   const [downloading, setDownloading] = useState<string | null>(null);
 
   const downloadPdf = async (invoiceId: string) => {

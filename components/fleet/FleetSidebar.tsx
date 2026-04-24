@@ -193,7 +193,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.94),rgba(11,16,23,0.92))] backdrop-blur md:hidden">
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-[linear-gradient(180deg,rgba(30,35,56,0.94),rgba(18,24,36,0.93))] backdrop-blur md:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <button
             type="button"
@@ -221,7 +221,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
             onClick={() => setShowMobileNav(false)}
             aria-label="Close navigation overlay"
           />
-          <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.98),rgba(11,16,23,0.96))] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+          <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(37,42,68,0.98),rgba(21,27,41,0.97))] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
             <div className="flex items-center justify-between border-b border-white/10 p-4">
           <div className="flex items-center gap-3">
             <TappyLogo size={32} />
@@ -242,7 +242,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
         </div>
       )}
 
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.98),rgba(11,16,23,0.96))] md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(37,42,68,0.98),rgba(21,27,41,0.97))] md:flex">
         {renderSidebarHeader()}
         {renderSidebarBody()}
       </aside>
