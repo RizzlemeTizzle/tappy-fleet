@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 interface Policy {
   id: string;
@@ -35,6 +36,7 @@ export default function PoliciesClient({
   companyId: string;
   initialPolicies: Policy[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [policies, setPolicies] = useState<Policy[]>(initialPolicies);
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function PoliciesClient({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error ?? 'Save failed');
+        setError(body.error ?? t('policy_save_failed'));
         return;
       }
       const body = await res.json().catch(() => null);
@@ -113,7 +115,7 @@ export default function PoliciesClient({
       setForm(emptyPolicy);
       router.refresh();
     } catch {
-      setError('Network error');
+      setError(t('network_error'));
     } finally {
       setSaving(false);
     }
@@ -136,13 +138,13 @@ export default function PoliciesClient({
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">Charging Policies</h1>
+        <h1 className="text-2xl font-bold text-white">{t('policies_title')}</h1>
         <button
           onClick={openCreate}
           className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
         >
           <Plus size={16} strokeWidth={2.3} />
-          New policy
+          {t('policy_new_btn')}
         </button>
       </div>
 
@@ -159,10 +161,10 @@ export default function PoliciesClient({
                     </span>
                   )}
                   {p.businessDaysOnly && (
-                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">Business days only</span>
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">{t('policy_business_days')}</span>
                   )}
                   {p.acOnly && (
-                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">AC only</span>
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">{t('policy_ac_only')}</span>
                   )}
                   {p.allowedHoursStart != null && p.allowedHoursEnd != null && (
                     <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
@@ -173,17 +175,17 @@ export default function PoliciesClient({
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <button onClick={() => openEdit(p)} className={fleetButtonClass('secondary', 'sm')}>
-                  Edit
+                  {t('btn_edit')}
                 </button>
                 <button onClick={() => handleDelete(p.id)} className={fleetButtonClass('danger', 'sm')}>
-                  Delete
+                  {t('btn_delete')}
                 </button>
               </div>
             </div>
           </div>
         ))}
         {policies.length === 0 && (
-          <div className="py-16 text-center text-zinc-500">No policies yet. Create one to restrict employee charging.</div>
+          <div className="py-16 text-center text-zinc-500">{t('policies_empty')}</div>
         )}
       </div>
 
@@ -194,12 +196,12 @@ export default function PoliciesClient({
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#7c5cff]/20 bg-[#7c5cff]/10 text-[#9f89ff]">
                 <ShieldCheck size={18} strokeWidth={2.1} />
               </span>
-              <h2 className="text-lg font-bold text-white">{editingId ? 'Edit policy' : 'New policy'}</h2>
+              <h2 className="text-lg font-bold text-white">{editingId ? t('policy_edit_title') : t('policy_new_title')}</h2>
             </div>
             <form onSubmit={handleSave} className="space-y-4">
               {error && <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
               <div>
-                <label className="mb-1.5 block text-sm text-zinc-400">Policy name</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_name_label')}</label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -209,7 +211,7 @@ export default function PoliciesClient({
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-sm text-zinc-400">Max per session (EUR)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_max_session')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -221,7 +223,7 @@ export default function PoliciesClient({
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm text-zinc-400">Max per month (EUR)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_max_month')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -235,13 +237,13 @@ export default function PoliciesClient({
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-sm text-zinc-400">Allowed from (hour)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_hours_from')}</label>
                   <select
                     value={form.allowedHoursStart}
                     onChange={(e) => setForm((f) => ({ ...f, allowedHoursStart: e.target.value }))}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                   >
-                    <option value="">Any time</option>
+                    <option value="">{t('policy_any_time')}</option>
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>
                         {String(i).padStart(2, '0')}:00
@@ -250,13 +252,13 @@ export default function PoliciesClient({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm text-zinc-400">Allowed until (hour)</label>
+                  <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_hours_until')}</label>
                   <select
                     value={form.allowedHoursEnd}
                     onChange={(e) => setForm((f) => ({ ...f, allowedHoursEnd: e.target.value }))}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                   >
-                    <option value="">Any time</option>
+                    <option value="">{t('policy_any_time')}</option>
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>
                         {String(i).padStart(2, '0')}:00
@@ -273,7 +275,7 @@ export default function PoliciesClient({
                     onChange={(e) => setForm((f) => ({ ...f, businessDaysOnly: e.target.checked }))}
                     className="accent-[#33d6c5]"
                   />
-                  <span className="text-sm text-zinc-300">Business days only (Mon-Fri)</span>
+                  <span className="text-sm text-zinc-300">{t('policy_business_days_label')}</span>
                 </label>
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
@@ -282,15 +284,15 @@ export default function PoliciesClient({
                     onChange={(e) => setForm((f) => ({ ...f, acOnly: e.target.checked }))}
                     className="accent-[#33d6c5]"
                   />
-                  <span className="text-sm text-zinc-300">AC charging only (no DC fast charge)</span>
+                  <span className="text-sm text-zinc-300">{t('policy_ac_only_label')}</span>
                 </label>
               </div>
               <div className="flex flex-col gap-2 pt-2 sm:flex-row">
                 <button type="button" onClick={() => setShowEditor(false)} className={fleetButtonClass('secondary', 'md', 'flex-1')}>
-                  Cancel
+                  {t('btn_cancel')}
                 </button>
                 <button type="submit" disabled={saving} className={fleetButtonClass('primary', 'md', 'flex-1')}>
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? t('btn_saving') : t('btn_save')}
                 </button>
               </div>
             </form>

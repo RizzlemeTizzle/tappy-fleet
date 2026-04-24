@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+import { useLang, useT } from '@/lib/i18n';
 
 function parseYMD(value: string): Date | null {
   if (!value) return null;
@@ -22,16 +17,9 @@ function toYMD(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function formatDisplay(value: string): string {
-  const d = parseYMD(value);
-  if (!d) return 'Pick a date';
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
 function calendarDays(year: number, month: number): (Date | null)[] {
   const first = new Date(year, month, 1);
-  // Monday = 0, so shift: getDay() returns 0=Sun, remap
-  const startDow = (first.getDay() + 6) % 7; // 0=Mon
+  const startDow = (first.getDay() + 6) % 7; // Monday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells: (Date | null)[] = [];
   for (let i = 0; i < startDow; i++) cells.push(null);
@@ -48,6 +36,8 @@ export default function DatePicker({
   onChange: (v: string) => void;
   label: string;
 }) {
+  const { lang } = useLang();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -56,6 +46,19 @@ export default function DatePicker({
 
   const [viewYear, setViewYear] = useState(selected?.getFullYear() ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(selected?.getMonth() ?? today.getMonth());
+
+  const dayNames = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(2024, 0, 1 + i); // Monday 1 Jan 2024
+    return new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(date);
+  });
+
+  const monthName = new Intl.DateTimeFormat(lang, { month: 'long' }).format(new Date(viewYear, viewMonth, 1));
+
+  function formatDisplay(v: string): string {
+    const d = parseYMD(v);
+    if (!d) return t('datepicker_pick');
+    return d.toLocaleDateString(lang, { day: '2-digit', month: 'short', year: 'numeric' });
+  }
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -101,7 +104,6 @@ export default function DatePicker({
 
       {open && (
         <div className="absolute left-0 z-50 mt-1 w-[min(16rem,calc(100vw-2rem))] rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
-          {/* Month nav */}
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
@@ -111,8 +113,8 @@ export default function DatePicker({
             >
               ‹
             </button>
-            <span className="text-white text-sm font-semibold">
-              {MONTHS[viewMonth]} {viewYear}
+            <span className="text-white text-sm font-semibold capitalize">
+              {monthName} {viewYear}
             </span>
             <button
               type="button"
@@ -124,14 +126,12 @@ export default function DatePicker({
             </button>
           </div>
 
-          {/* Day headers */}
           <div className="grid grid-cols-7 mb-1">
-            {DAYS.map(d => (
-              <div key={d} className="text-center text-xs text-zinc-500 py-1">{d}</div>
+            {dayNames.map((d, i) => (
+              <div key={i} className="text-center text-xs text-zinc-500 py-1">{d}</div>
             ))}
           </div>
 
-          {/* Day cells */}
           <div className="grid grid-cols-7 gap-y-1">
             {cells.map((day, i) => {
               if (!day) return <div key={`e${i}`} />;
@@ -157,14 +157,13 @@ export default function DatePicker({
             })}
           </div>
 
-          {/* Clear */}
           {value && (
             <button
               type="button"
               onClick={() => { onChange(''); setOpen(false); }}
               className="mt-3 w-full text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-center"
             >
-              Clear
+              {t('datepicker_clear')}
             </button>
           )}
         </div>

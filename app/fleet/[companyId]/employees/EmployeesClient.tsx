@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Plus, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 interface Member {
   id: string;
@@ -37,6 +38,7 @@ export default function EmployeesClient({
   initialMembers: Member[];
   policies: Policy[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [members, setMembers] = useState<Member[]>(initialMembers);
   useEffect(() => {
@@ -47,6 +49,36 @@ export default function EmployeesClient({
   const [inviteRole, setInviteRole] = useState('EMPLOYEE');
   const [inviteError, setInviteError] = useState('');
   const [inviting, setInviting] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [busyMemberId, setBusyMemberId] = useState<string | null>(null);
+
+  const isOwner = (member: Member) => member.role === 'FLEET_OWNER';
+
+  const updateMember = async (memberId: string, payload: Partial<Pick<Member, 'role' | 'status'>>) => {
+    setActionError('');
+    setBusyMemberId(memberId);
+    try {
+      const res = await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(body.error ?? t('emp_action_failed'));
+        return false;
+      }
+      setMembers((prev) =>
+        prev.map((member) => (member.id === memberId ? { ...member, ...payload } : member)),
+      );
+      return true;
+    } catch {
+      setActionError(t('network_error'));
+      return false;
+    } finally {
+      setBusyMemberId(null);
+    }
+  };
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,14 +92,14 @@ export default function EmployeesClient({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setInviteError(body.error ?? 'Invite failed');
+        setInviteError(body.error ?? t('invite_failed'));
         return;
       }
       setShowInvite(false);
       setInviteEmail('');
       router.refresh();
     } catch {
-      setInviteError('Network error');
+      setInviteError(t('network_error'));
     } finally {
       setInviting(false);
     }
@@ -75,18 +107,36 @@ export default function EmployeesClient({
 
   const handleSuspend = async (memberId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
-    const res = await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (res.ok) {
-      setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, status: newStatus } : m)));
+    await updateMember(memberId, { status: newStatus });
+  };
+
+  const handleRoleChange = async (memberId: string, role: string) => {
+    await updateMember(memberId, { role });
+  };
+
+  const handleResendInvite = async (member: Member) => {
+    setActionError('');
+    setBusyMemberId(member.id);
+    try {
+      const res = await fetch(`/api/fleet/${companyId}/members/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: member.user_email, role: member.role }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setActionError(body.error ?? t('emp_resend_failed'));
+        return;
+      }
+    } catch {
+      setActionError(t('network_error'));
+    } finally {
+      setBusyMemberId(null);
     }
   };
 
   const handleRemove = async (memberId: string) => {
-    if (!confirm('Remove this member?')) return;
+    if (!confirm(t('emp_confirm_remove'))) return;
     const res = await fetch(`/api/fleet/${companyId}/members/${memberId}`, {
       method: 'DELETE',
     });
@@ -100,26 +150,32 @@ export default function EmployeesClient({
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">Employees</h1>
+        <h1 className="text-2xl font-bold text-white">{t('nav_employees')}</h1>
         <button
           onClick={() => setShowInvite(true)}
           className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
         >
           <Plus size={16} strokeWidth={2.3} />
-          Invite member
+          {t('emp_invite_btn')}
         </button>
       </div>
+
+      {actionError && (
+        <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {actionError}
+        </div>
+      )}
 
       <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
-              <th className="px-5 py-3 text-left">Name</th>
-              <th className="px-5 py-3 text-left">Email</th>
-              <th className="px-5 py-3 text-left">Role</th>
-              <th className="px-5 py-3 text-left">Status</th>
-              <th className="px-5 py-3 text-left">Actions</th>
+              <th className="px-5 py-3 text-left">{t('emp_col_name')}</th>
+              <th className="px-5 py-3 text-left">{t('emp_col_email')}</th>
+              <th className="px-5 py-3 text-left">{t('emp_col_role')}</th>
+              <th className="px-5 py-3 text-left">{t('emp_col_status')}</th>
+              <th className="px-5 py-3 text-left">{t('emp_col_actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -127,26 +183,54 @@ export default function EmployeesClient({
               <tr key={m.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
                 <td className="px-5 py-3 font-medium text-white">{m.user_name ?? '-'}</td>
                 <td className="px-5 py-3 text-zinc-400">{m.user_email}</td>
-                <td className="px-5 py-3 text-zinc-300">{m.role.replace(/_/g, ' ')}</td>
+                <td className="px-5 py-3 text-zinc-300">
+                  {isOwner(m) ? (
+                    m.role.replace(/_/g, ' ')
+                  ) : (
+                    <select
+                      value={m.role}
+                      onChange={(e) => void handleRoleChange(m.id, e.target.value)}
+                      disabled={busyMemberId === m.id}
+                      className="min-w-[170px] rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {ROLES.filter((role) => role !== 'FLEET_OWNER').map((role) => (
+                        <option key={role} value={role}>
+                          {role.replace(/_/g, ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </td>
                 <td className="px-5 py-3">
                   <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[m.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
                     {m.status}
                   </span>
                 </td>
                 <td className="px-5 py-3">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {m.status === 'INVITED' && (
+                      <button
+                        onClick={() => void handleResendInvite(m)}
+                        disabled={busyMemberId === m.id}
+                        className={fleetButtonClass('subtle', 'sm')}
+                      >
+                        {busyMemberId === m.id ? t('emp_resending') : t('emp_resend_invite')}
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleSuspend(m.id, m.status)}
+                      onClick={() => void handleSuspend(m.id, m.status)}
+                      disabled={busyMemberId === m.id}
                       className={fleetButtonClass('secondary', 'sm')}
                     >
-                      {m.status === 'SUSPENDED' ? 'Activate' : 'Suspend'}
+                      {m.status === 'SUSPENDED' ? t('emp_activate') : t('emp_suspend')}
                     </button>
-                    {m.role !== 'FLEET_OWNER' && (
+                    {!isOwner(m) && (
                       <button
                         onClick={() => handleRemove(m.id)}
+                        disabled={busyMemberId === m.id}
                         className={fleetButtonClass('danger', 'sm')}
                       >
-                        Remove
+                        {t('emp_remove')}
                       </button>
                     )}
                   </div>
@@ -156,7 +240,7 @@ export default function EmployeesClient({
             {members.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-10 text-center text-zinc-500">
-                  No members yet. Invite your first employee.
+                  {t('emp_empty')}
                 </td>
               </tr>
             )}
@@ -168,7 +252,7 @@ export default function EmployeesClient({
       <div className="space-y-3 md:hidden">
         {members.length === 0 && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
-            No members yet. Invite your first employee.
+            {t('emp_empty')}
           </div>
         )}
         {members.map((m) => (
@@ -183,23 +267,49 @@ export default function EmployeesClient({
               </span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-300">
-              <span className="rounded bg-zinc-800 px-2 py-1">{m.role.replace(/_/g, ' ')}</span>
+              {isOwner(m) ? (
+                <span className="rounded bg-zinc-800 px-2 py-1">{m.role.replace(/_/g, ' ')}</span>
+              ) : (
+                <select
+                  value={m.role}
+                  onChange={(e) => void handleRoleChange(m.id, e.target.value)}
+                  disabled={busyMemberId === m.id}
+                  className="rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-white focus:border-[#33d6c5] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {ROLES.filter((role) => role !== 'FLEET_OWNER').map((role) => (
+                    <option key={role} value={role}>
+                      {role.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              )}
               {m.department_name && <span className="rounded bg-zinc-800 px-2 py-1">{m.department_name}</span>}
               {m.policy_name && <span className="rounded bg-zinc-800 px-2 py-1">{m.policy_name}</span>}
             </div>
             <div className="mt-4 flex flex-col gap-2">
+              {m.status === 'INVITED' && (
+                <button
+                  onClick={() => void handleResendInvite(m)}
+                  disabled={busyMemberId === m.id}
+                  className={fleetButtonClass('subtle', 'md', 'w-full')}
+                >
+                  {busyMemberId === m.id ? t('emp_resending') : t('emp_resend_invite')}
+                </button>
+              )}
               <button
-                onClick={() => handleSuspend(m.id, m.status)}
+                onClick={() => void handleSuspend(m.id, m.status)}
+                disabled={busyMemberId === m.id}
                 className={fleetButtonClass('secondary', 'md', 'w-full')}
               >
-                {m.status === 'SUSPENDED' ? 'Activate' : 'Suspend'}
+                {m.status === 'SUSPENDED' ? t('emp_activate') : t('emp_suspend')}
               </button>
-              {m.role !== 'FLEET_OWNER' && (
+              {!isOwner(m) && (
                 <button
                   onClick={() => handleRemove(m.id)}
+                  disabled={busyMemberId === m.id}
                   className={fleetButtonClass('danger', 'md', 'w-full')}
                 >
-                  Remove
+                  {t('emp_remove')}
                 </button>
               )}
             </div>
@@ -214,7 +324,7 @@ export default function EmployeesClient({
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#33d6c5]/20 bg-[#33d6c5]/10 text-[#7ce9de]">
                 <UserPlus size={18} strokeWidth={2.1} />
               </span>
-              <h2 className="text-lg font-bold text-white">Invite member</h2>
+              <h2 className="text-lg font-bold text-white">{t('emp_invite_title')}</h2>
             </div>
             <form onSubmit={handleInvite} className="space-y-4">
               {inviteError && (
@@ -223,7 +333,7 @@ export default function EmployeesClient({
                 </div>
               )}
               <div>
-                <label className="mb-1.5 block text-sm text-zinc-400">Email address</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">{t('label_email')}</label>
                 <input
                   type="email"
                   value={inviteEmail}
@@ -234,7 +344,7 @@ export default function EmployeesClient({
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm text-zinc-400">Role</label>
+                <label className="mb-1.5 block text-sm text-zinc-400">{t('emp_col_role')}</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
@@ -253,14 +363,14 @@ export default function EmployeesClient({
                   onClick={() => setShowInvite(false)}
                   className={fleetButtonClass('secondary', 'md', 'flex-1')}
                 >
-                  Cancel
+                  {t('btn_cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={inviting}
                   className={fleetButtonClass('primary', 'md', 'flex-1')}
                 >
-                  {inviting ? 'Sending...' : 'Send invite'}
+                  {inviting ? t('emp_invite_sending') : t('emp_invite_send')}
                 </button>
               </div>
             </form>

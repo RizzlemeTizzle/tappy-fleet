@@ -7,8 +7,10 @@ import { Suspense } from 'react';
 import { BrandIcon } from '@/components/BrandIcon';
 import TappyLogo from '@/components/TappyLogo';
 import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 function AcceptInviteContent() {
+  const t = useT();
   const params = useSearchParams();
   const router = useRouter();
   const inviteToken = params.get('token');
@@ -43,7 +45,7 @@ function AcceptInviteContent() {
   async function handleAccept() {
     if (!inviteToken || !companyId) {
       setState('error');
-      setMessage('Invalid invite link. Please ask your fleet manager to resend the invite.');
+      setMessage(t('invite_invalid_link'));
       return;
     }
     setState('loading');
@@ -62,20 +64,20 @@ function AcceptInviteContent() {
       if (!res.ok) {
         setState('error');
         const hint = body.error?.toLowerCase().includes('invalid')
-          ? `${body.error} Make sure you're signed in with the account the invite was sent to.`
-          : (body.error ?? 'Failed to accept invite. It may have expired.');
+          ? `${body.error} ${t('invite_wrong_account_hint')}`
+          : (body.error ?? t('invite_failed_expired'));
         setMessage(hint);
         return;
       }
       setState('success');
     } catch {
       setState('error');
-      setMessage('Network error. Please try again.');
+      setMessage(t('network_error'));
     }
   }
 
   if (!inviteToken || !companyId) {
-    return <p className="mt-4 text-sm text-red-400">Invalid invite link: token or company missing.</p>;
+    return <p className="mt-4 text-sm text-red-400">{t('invite_missing_params')}</p>;
   }
 
   if (authed === null) return null;
@@ -86,27 +88,27 @@ function AcceptInviteContent() {
         <>
           {!authed && (
             <p className="mb-4 text-sm text-zinc-400">
-              You need a Tappy Charge account to accept this invite.{' '}
+              {t('invite_need_account')}{' '}
               <a
                 href={`/auth/login?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`}
                 className="text-[#7c5cff] hover:underline"
               >
-                Sign in
+                {t('invite_sign_in')}
               </a>{' '}
-              or{' '}
+              {t('invite_or')}{' '}
               <a
                 href={`/auth/register?next=${encodeURIComponent('/accept-invite?token=' + inviteToken + '&company=' + companyId)}`}
                 className="text-[#7c5cff] hover:underline"
               >
-                create an account
+                {t('invite_create_account')}
               </a>{' '}
-              first.
+              {t('invite_first')}
             </p>
           )}
           {authed && loggedInEmail && (
             <div className="mb-1 flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-4 py-2.5 text-sm">
               <span className="text-zinc-400">
-                Signed in as <span className="text-white">{loggedInEmail}</span>
+                {t('invite_signed_in_as')} <span className="text-white">{loggedInEmail}</span>
               </span>
               <a
                 href={`/api/auth/clear-cookie`}
@@ -119,7 +121,7 @@ function AcceptInviteContent() {
                 }}
                 className="ml-3 shrink-0 text-xs text-zinc-500 hover:text-zinc-300"
               >
-                Wrong account?
+                {t('invite_wrong_account')}
               </a>
             </div>
           )}
@@ -128,7 +130,7 @@ function AcceptInviteContent() {
             disabled={!authed}
             className={fleetButtonClass('primary', 'lg', 'w-full disabled:opacity-40')}
           >
-            Accept invite
+            {t('invite_accept_btn')}
           </button>
         </>
       )}
@@ -136,7 +138,7 @@ function AcceptInviteContent() {
       {state === 'loading' && (
         <div className="flex items-center justify-center gap-2 text-center text-sm text-zinc-400">
           <LoaderCircle size={16} className="animate-spin" />
-          <span>Accepting invite...</span>
+          <span>{t('invite_accepting')}</span>
         </div>
       )}
 
@@ -145,15 +147,13 @@ function AcceptInviteContent() {
           <div className="flex justify-center">
             <BrandIcon icon={CheckCircle2} tone="teal" className="h-16 w-16" size={28} />
           </div>
-          <p className="font-semibold text-white">You've joined the fleet!</p>
-          <p className="text-sm text-zinc-400">
-            Redirecting you to the Tappy Charge app page so you can continue on your phone.
-          </p>
+          <p className="font-semibold text-white">{t('invite_success_title')}</p>
+          <p className="text-sm text-zinc-400">{t('invite_success_desc')}</p>
           <a
             href={appUrl}
             className={fleetButtonClass('primary', 'lg', 'w-full')}
           >
-            Open app page
+            {t('invite_open_app')}
           </a>
         </div>
       )}
@@ -175,13 +175,24 @@ export default function AcceptInvitePage() {
           <div className="mb-3 flex justify-center">
             <TappyLogo size={56} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Fleet Invite</h1>
-          <p className="mt-1 text-sm text-zinc-400">You've been invited to join a company fleet</p>
+          <Suspense fallback={null}>
+            <AcceptInvitePageHeader />
+          </Suspense>
         </div>
         <Suspense>
           <AcceptInviteContent />
         </Suspense>
       </div>
     </div>
+  );
+}
+
+function AcceptInvitePageHeader() {
+  const t = useT();
+  return (
+    <>
+      <h1 className="text-2xl font-bold text-white">{t('invite_page_title')}</h1>
+      <p className="mt-1 text-sm text-zinc-400">{t('invite_page_subtitle')}</p>
+    </>
   );
 }

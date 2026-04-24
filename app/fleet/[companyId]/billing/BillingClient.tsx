@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { fleetButtonClass } from '@/lib/fleet-ui';
+import { useT } from '@/lib/i18n';
 
 interface Invoice {
   id: string;
@@ -34,6 +35,7 @@ export default function BillingClient({
   companyId: string;
   initialInvoices: Invoice[];
 }) {
+  const t = useT();
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   useEffect(() => {
     setInvoices(initialInvoices);
@@ -62,19 +64,19 @@ export default function BillingClient({
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Billing & Invoices</h1>
-        <p className="text-sm text-zinc-400 mt-1">Invoices are generated automatically at the end of each month.</p>
+        <h1 className="text-2xl font-bold text-white">{t('billing_title')}</h1>
+        <p className="text-sm text-zinc-400 mt-1">{t('billing_subtitle')}</p>
       </div>
       <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
-              <th className="text-left px-5 py-3">Period</th>
-              <th className="text-left px-5 py-3">Amount</th>
-              <th className="text-left px-5 py-3">Status</th>
-              <th className="text-left px-5 py-3">Sessions</th>
-              <th className="text-left px-5 py-3">Actions</th>
+              <th className="text-left px-5 py-3">{t('billing_col_period')}</th>
+              <th className="text-left px-5 py-3">{t('billing_col_amount')}</th>
+              <th className="text-left px-5 py-3">{t('billing_col_status')}</th>
+              <th className="text-left px-5 py-3">{t('billing_col_sessions')}</th>
+              <th className="text-left px-5 py-3">{t('billing_col_actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -94,7 +96,7 @@ export default function BillingClient({
                     disabled={downloading === inv.id}
                     className={fleetButtonClass('secondary', 'sm')}
                   >
-                    {downloading === inv.id ? 'Downloading...' : 'Download PDF'}
+                    {downloading === inv.id ? t('billing_downloading') : t('billing_download_pdf')}
                   </button>
                 </td>
               </tr>
@@ -102,7 +104,7 @@ export default function BillingClient({
             {invoices.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-10 text-center text-zinc-500">
-                  No invoices yet. Invoices are generated automatically at the end of each month.
+                  {t('billing_empty')}
                 </td>
               </tr>
             )}
@@ -114,7 +116,7 @@ export default function BillingClient({
       <div className="space-y-3 md:hidden">
         {invoices.length === 0 && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
-            No invoices yet. Invoices are generated automatically at the end of each month.
+            {t('billing_empty')}
           </div>
         )}
         {invoices.map((inv) => (
@@ -128,13 +130,13 @@ export default function BillingClient({
                 {inv.status}
               </span>
             </div>
-            <p className="mt-3 text-sm text-zinc-400">Sessions: {inv._count?.lines ?? '—'}</p>
+            <p className="mt-3 text-sm text-zinc-400">{t('billing_col_sessions')}: {inv._count?.lines ?? '—'}</p>
             <button
               onClick={() => downloadPdf(inv.id)}
               disabled={downloading === inv.id}
               className={fleetButtonClass('secondary', 'md', 'mt-4 w-full')}
             >
-              {downloading === inv.id ? 'Downloading...' : 'Download PDF'}
+              {downloading === inv.id ? t('billing_downloading') : t('billing_download_pdf')}
             </button>
           </article>
         ))}
