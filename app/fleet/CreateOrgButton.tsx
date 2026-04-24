@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
-export default function CreateOrgButton() {
+export default function CreateOrgButton({ className = '' }: { className?: string }) {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -54,7 +54,7 @@ export default function CreateOrgButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className={fleetButtonClass('primary', 'lg', 'mt-6')}
+        className={fleetButtonClass('primary', 'lg', className)}
       >
         <Plus size={16} strokeWidth={2.3} />
         {t('create_org_btn')}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Download, Filter } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import DatePicker from './DatePicker';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 
@@ -42,19 +42,10 @@ export default function ReportsClient({
   from: string;
   to: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const [fromDate, setFromDate] = useState(from);
   const [toDate, setToDate] = useState(to);
   const [exporting, setExporting] = useState(false);
-
-  const applyFilter = () => {
-    const qs = new URLSearchParams();
-    if (fromDate) qs.set('from', fromDate);
-    if (toDate) qs.set('to', toDate);
-    const search = qs.toString();
-    router.push(search ? `${pathname}?${search}` : pathname);
-  };
 
   const exportCsv = async () => {
     setExporting(true);
@@ -94,18 +85,19 @@ export default function ReportsClient({
         </button>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-end">
+      <form action={pathname} method="get" className="mb-6 grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-end">
         <DatePicker label="From" value={fromDate} onChange={setFromDate} />
         <DatePicker label="To" value={toDate} onChange={setToDate} />
+        <input type="hidden" name="from" value={fromDate} />
+        <input type="hidden" name="to" value={toDate} />
         <button
-          type="button"
-          onClick={applyFilter}
+          type="submit"
           className={fleetButtonClass('secondary', 'md', 'w-full sm:col-span-2 xl:w-auto')}
         >
           <Filter size={16} strokeWidth={2.2} />
           Apply
         </button>
-      </div>
+      </form>
 
       <div className="mb-3 text-sm text-zinc-400">{total} sessions total</div>
 

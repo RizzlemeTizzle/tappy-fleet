@@ -130,16 +130,18 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
     </div>
   );
 
-  const renderSidebarContent = () => (
-    <>
-      <div className="border-b border-white/10 p-5">
-        <div className="flex items-center gap-3">
-          <TappyLogo size={36} />
-          <span className="text-base font-bold text-white">Tappy Charge</span>
-        </div>
-        {renderOrgSwitcher()}
+  const renderSidebarHeader = () => (
+    <div className="border-b border-white/10 p-5">
+      <div className="flex items-center gap-3">
+        <TappyLogo size={36} />
+        <span className="text-base font-bold text-white">Tappy Charge</span>
       </div>
+      {renderOrgSwitcher()}
+    </div>
+  );
 
+  const renderSidebarBody = () => (
+    <>
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
           const href = `${base}${item.path}`;
@@ -191,7 +193,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-white/10 bg-[#070b11]/95 backdrop-blur md:hidden">
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.94),rgba(11,16,23,0.92))] backdrop-blur md:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <button
             type="button"
@@ -219,12 +221,12 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
             onClick={() => setShowMobileNav(false)}
             aria-label="Close navigation overlay"
           />
-          <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-[#070b11] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+          <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.98),rgba(11,16,23,0.96))] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
             <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <div className="flex items-center gap-3">
-                <TappyLogo size={32} />
-                <span className="text-base font-bold text-white">Tappy Charge</span>
-              </div>
+          <div className="flex items-center gap-3">
+            <TappyLogo size={32} />
+            <span className="text-base font-bold text-white">Tappy Charge</span>
+          </div>
               <button
                 type="button"
                 onClick={() => setShowMobileNav(false)}
@@ -234,13 +236,15 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
                 <X size={16} />
               </button>
             </div>
-            {renderSidebarContent()}
+            {renderSidebarHeader()}
+            {renderSidebarBody()}
           </div>
         </div>
       )}
 
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[#070b11] md:flex">
-        {renderSidebarContent()}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.98),rgba(11,16,23,0.96))] md:flex">
+        {renderSidebarHeader()}
+        {renderSidebarBody()}
       </aside>
     </>
   );

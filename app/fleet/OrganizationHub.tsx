@@ -162,7 +162,7 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
         </p>
         {totalMemberships === 0 && (
           <div className="mt-6 flex justify-center">
-            <CreateOrgButton />
+            <CreateOrgButton className="mt-6" />
           </div>
         )}
       </div>
