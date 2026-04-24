@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { API_URL } from '@/lib/api';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 
 interface Policy {
@@ -81,12 +80,11 @@ export default function PoliciesClient({
     };
     try {
       const url = editingId
-        ? `${API_URL}/api/fleet/companies/${companyId}/policies/${editingId}`
-        : `${API_URL}/api/fleet/companies/${companyId}/policies`;
+        ? `/api/fleet/${companyId}/policies/${editingId}`
+        : `/api/fleet/${companyId}/policies`;
       const res = await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -105,9 +103,8 @@ export default function PoliciesClient({
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this policy?')) return;
-    const res = await fetch(`${API_URL}/api/fleet/companies/${companyId}/policies/${id}`, {
+    const res = await fetch(`/api/fleet/${companyId}/policies/${id}`, {
       method: 'DELETE',
-      credentials: 'include',
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));

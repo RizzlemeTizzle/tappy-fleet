@@ -12,7 +12,7 @@ const buttonSizes = {
 
 const buttonVariants = {
   primary:
-    'border-transparent bg-[linear-gradient(135deg,#a798ff_0%,#88a7ff_48%,#5ee6d7_100%)] text-black shadow-[0_16px_34px_rgba(89,115,255,0.28)] hover:-translate-y-0.5 hover:brightness-105',
+    'border-transparent bg-[linear-gradient(135deg,#a798ff_0%,#88a7ff_48%,#5ee6d7_100%)] text-[#0b1017] shadow-[0_16px_34px_rgba(89,115,255,0.28)] hover:-translate-y-0.5 hover:brightness-105',
   secondary:
     'border-white/12 bg-[linear-gradient(135deg,rgba(143,125,255,0.18),rgba(109,137,255,0.14),rgba(51,214,197,0.12))] text-white shadow-[0_10px_26px_rgba(62,78,120,0.18)] hover:-translate-y-0.5 hover:border-[#8f7dff]/35 hover:bg-[linear-gradient(135deg,rgba(143,125,255,0.24),rgba(109,137,255,0.18),rgba(51,214,197,0.15))]',
   subtle:

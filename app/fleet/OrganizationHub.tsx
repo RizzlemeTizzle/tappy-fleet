@@ -184,8 +184,8 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
               {t('hub_subtitle')}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-zinc-300">
+          <div className="flex flex-wrap items-stretch gap-3">
+            <div className="inline-flex h-11 items-center rounded-full border border-white/10 bg-black/20 px-4 text-sm text-zinc-300">
               {organizations.length}{' '}
               {organizations.length === 1 ? t('active_org_singular') : t('active_org_plural')}
             </div>

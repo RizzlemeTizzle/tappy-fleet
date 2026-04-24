@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Download, Filter } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import DatePicker from './DatePicker';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 
@@ -43,6 +43,7 @@ export default function ReportsClient({
   to: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [fromDate, setFromDate] = useState(from);
   const [toDate, setToDate] = useState(to);
   const [exporting, setExporting] = useState(false);
@@ -51,7 +52,8 @@ export default function ReportsClient({
     const qs = new URLSearchParams();
     if (fromDate) qs.set('from', fromDate);
     if (toDate) qs.set('to', toDate);
-    router.push(`?${qs}`);
+    const search = qs.toString();
+    router.push(search ? `${pathname}?${search}` : pathname);
   };
 
   const exportCsv = async () => {
@@ -82,9 +84,10 @@ export default function ReportsClient({
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Session Reports</h1>
         <button
+          type="button"
           onClick={exportCsv}
           disabled={exporting}
-          className={fleetButtonClass('secondary', 'md', 'w-full sm:w-auto')}
+          className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
         >
           <Download size={16} strokeWidth={2.2} />
           {exporting ? 'Exporting...' : 'Export CSV'}
@@ -95,8 +98,9 @@ export default function ReportsClient({
         <DatePicker label="From" value={fromDate} onChange={setFromDate} />
         <DatePicker label="To" value={toDate} onChange={setToDate} />
         <button
+          type="button"
           onClick={applyFilter}
-          className={fleetButtonClass('primary', 'md', 'w-full sm:col-span-2 xl:w-auto')}
+          className={fleetButtonClass('secondary', 'md', 'w-full sm:col-span-2 xl:w-auto')}
         >
           <Filter size={16} strokeWidth={2.2} />
           Apply
