@@ -28,6 +28,10 @@ interface Props {
 
 export default function FleetSidebar({ companyId, companyName, role, memberships }: Props) {
   const t = useT();
+  const tr = (key: string, fallback: string) => {
+    const value = t(key);
+    return value === key ? fallback : value;
+  };
   const pathname = usePathname();
   const router = useRouter();
   const base = `/fleet/${companyId}`;
@@ -40,6 +44,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
     { key: 'nav_employees',  path: '/employees', icon: fleetNavIcons.employees, roles: ['FLEET_OWNER', 'FLEET_ADMIN'] },
     { key: 'nav_policies',   path: '/policies',  icon: fleetNavIcons.policies,  roles: ['FLEET_OWNER', 'FLEET_ADMIN'] },
     { key: 'nav_billing',    path: '/billing',   icon: fleetNavIcons.billing,   roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
+    { key: 'nav_reimbursements', path: '/reimbursements', icon: fleetNavIcons.reimbursements, roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
     { key: 'nav_reports',    path: '/reports',   icon: fleetNavIcons.reports,   roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
     { key: 'nav_audit_log',  path: '/audit',     icon: fleetNavIcons.audit,     roles: ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'] },
   ];
@@ -163,7 +168,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
                 tone={isActive ? 'active' : 'muted'}
                 className="h-9 w-9"
               />
-              {t(item.key)}
+              {tr(item.key, item.key === 'nav_reimbursements' ? 'Reimbursements' : item.key)}
             </Link>
           );
         })}

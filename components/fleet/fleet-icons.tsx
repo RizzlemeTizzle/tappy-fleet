@@ -8,6 +8,7 @@ import {
   ReceiptText,
   ShieldCheck,
   Users,
+  WalletCards,
 } from 'lucide-react';
 
 export const fleetNavIcons: Record<string, LucideIcon> = {
@@ -15,6 +16,7 @@ export const fleetNavIcons: Record<string, LucideIcon> = {
   employees: Users,
   policies: ShieldCheck,
   billing: ReceiptText,
+  reimbursements: WalletCards,
   reports: BarChart3,
   audit: ClipboardList,
   hub: Building2,
