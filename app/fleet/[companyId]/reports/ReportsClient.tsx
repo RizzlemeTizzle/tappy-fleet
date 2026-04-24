@@ -59,10 +59,8 @@ interface ExportSchedule {
   id: string;
   name: string;
   filters: ReportFilters;
+  recipientEmail: string;
   frequency: 'weekly' | 'monthly';
-  dayOfWeek: number;
-  dayOfMonth: number;
-  time: string;
   createdAt: string;
 }
 
@@ -77,16 +75,6 @@ const BILLING_MODE_OPTIONS = [
   { value: '', label: 'All billing modes' },
   { value: 'COMPANY_PAID', label: 'Company paid' },
   { value: 'EMPLOYEE_REIMBURSABLE', label: 'Employee reimbursable' },
-];
-
-const DAY_OPTIONS = [
-  { value: 0, label: 'Sunday' },
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
 ];
 
 function formatCurrency(cents: number) {
@@ -126,34 +114,65 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
+function formatDateInput(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getPreviousClosedPeriod(frequency: ExportSchedule['frequency']) {
+  const today = new Date();
+  const currentDay = today.getDay();
+
+  if (frequency === 'weekly') {
+    const end = new Date(today);
+    const daysSinceMonday = (currentDay + 6) % 7;
+    end.setDate(today.getDate() - daysSinceMonday - 1);
+
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+
+    return {
+      from: formatDateInput(start),
+      to: formatDateInput(end),
+      label: `${start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
+      explanation: 'Previous full Monday-Sunday week',
+    };
+  }
+
+  const end = new Date(today.getFullYear(), today.getMonth(), 0);
+  const start = new Date(end.getFullYear(), end.getMonth(), 1);
+
+  return {
+    from: formatDateInput(start),
+    to: formatDateInput(end),
+    label: `${start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
+    explanation: 'Previous full calendar month',
+  };
+}
+
 function getNextRun(schedule: ExportSchedule) {
-  const [hours, minutes] = schedule.time.split(':').map(Number);
   const now = new Date();
   const next = new Date(now);
-  next.setSeconds(0, 0);
-  next.setHours(hours || 9, minutes || 0, 0, 0);
+  next.setHours(9, 0, 0, 0);
 
   if (schedule.frequency === 'weekly') {
-    const dayDelta = (schedule.dayOfWeek - next.getDay() + 7) % 7;
+    const dayDelta = (1 - next.getDay() + 7) % 7;
     next.setDate(next.getDate() + dayDelta);
     if (next <= now) next.setDate(next.getDate() + 7);
     return next;
   }
 
-  const targetDay = Math.min(schedule.dayOfMonth, 28);
-  next.setDate(targetDay);
+  next.setDate(1);
   if (next <= now) {
-    next.setMonth(next.getMonth() + 1);
-    next.setDate(targetDay);
+    next.setMonth(next.getMonth() + 1, 1);
   }
   return next;
 }
 
 function scheduleDescription(schedule: ExportSchedule) {
   if (schedule.frequency === 'weekly') {
-    return `Weekly on ${DAY_OPTIONS.find((day) => day.value === schedule.dayOfWeek)?.label ?? 'Monday'} at ${schedule.time}`;
+    return 'Weekly email every Monday at 09:00 with the previous full week';
   }
-  return `Monthly on day ${schedule.dayOfMonth} at ${schedule.time}`;
+  return 'Monthly email on the 1st at 09:00 with the previous full month';
 }
 
 export default function ReportsClient({
@@ -202,10 +221,8 @@ export default function ReportsClient({
   const [schedules, setSchedules] = useState<ExportSchedule[]>([]);
   const [viewName, setViewName] = useState('');
   const [scheduleName, setScheduleName] = useState('');
+  const [scheduleEmail, setScheduleEmail] = useState('');
   const [scheduleFrequency, setScheduleFrequency] = useState<'weekly' | 'monthly'>('weekly');
-  const [scheduleDayOfWeek, setScheduleDayOfWeek] = useState(1);
-  const [scheduleDayOfMonth, setScheduleDayOfMonth] = useState(1);
-  const [scheduleTime, setScheduleTime] = useState('09:00');
   const [feedback, setFeedback] = useState('');
 
   const savedViewsKey = `tappy-reports:${companyId}:saved-views`;
@@ -227,12 +244,42 @@ export default function ReportsClient({
       const rawViews = localStorage.getItem(savedViewsKey);
       const rawSchedules = localStorage.getItem(schedulesKey);
       setSavedViews(rawViews ? (JSON.parse(rawViews) as SavedView[]) : []);
-      setSchedules(rawSchedules ? (JSON.parse(rawSchedules) as ExportSchedule[]) : []);
+      setSchedules(
+        rawSchedules
+          ? (JSON.parse(rawSchedules) as ExportSchedule[]).map((schedule) => ({
+              ...schedule,
+              recipientEmail: schedule.recipientEmail ?? '',
+            }))
+          : [],
+      );
     } catch {
       setSavedViews([]);
       setSchedules([]);
     }
   }, [savedViewsKey, schedulesKey]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadEmail = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { email?: string | null };
+        if (active && data.email) {
+          setScheduleEmail((current) => current || data.email || '');
+        }
+      } catch {
+        // Ignore email prefill failures and keep manual entry available.
+      }
+    };
+
+    void loadEmail();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const membersById = useMemo(
     () => new Map(members.map((member) => [member.id, member])),
@@ -390,20 +437,23 @@ export default function ReportsClient({
       setFeedback('Add a schedule name before saving.');
       return;
     }
+    const recipientEmail = scheduleEmail.trim();
+    if (!recipientEmail) {
+      setFeedback('Add the email address that should receive this CSV.');
+      return;
+    }
 
     const nextSchedule: ExportSchedule = {
       id: crypto.randomUUID(),
       name,
       filters: { ...filters },
+      recipientEmail,
       frequency: scheduleFrequency,
-      dayOfWeek: scheduleDayOfWeek,
-      dayOfMonth: scheduleDayOfMonth,
-      time: scheduleTime,
       createdAt: new Date().toISOString(),
     };
     persistSchedules([nextSchedule, ...schedules]);
     setScheduleName('');
-    setFeedback(`Saved schedule "${name}" on this device.`);
+    setFeedback(`Saved email export "${name}" on this device.`);
   };
 
   const deleteSchedule = (id: string) => {
@@ -680,8 +730,11 @@ export default function ReportsClient({
               <h2 className="font-semibold">Scheduled exports</h2>
             </div>
             <p className="mb-4 text-sm text-zinc-400">
-              Schedules are saved on this device and keep a reusable export setup with a next-run preview.
+              Save a reusable email export preset in this browser. Weekly sends always use the previous full Monday-Sunday week, and monthly sends use the previous full calendar month.
             </p>
+            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-sm text-amber-100">
+              Automatic background emailing is not wired up in this frontend yet, so these presets stay on this device for now.
+            </div>
             <div className="space-y-3">
               <label className="block">
                 <span className="mb-1.5 block text-xs text-zinc-400">Schedule name</span>
@@ -692,7 +745,17 @@ export default function ReportsClient({
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
                 />
               </label>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-xs text-zinc-400">Email address</span>
+                <input
+                  type="email"
+                  value={scheduleEmail}
+                  onChange={(event) => setScheduleEmail(event.target.value)}
+                  placeholder="finance@company.com"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
+                />
+              </label>
+              <div className="grid gap-3">
                 <FilterSelect
                   label="Frequency"
                   value={scheduleFrequency}
@@ -702,34 +765,12 @@ export default function ReportsClient({
                     { value: 'monthly', label: 'Monthly' },
                   ]}
                 />
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-zinc-400">Time</span>
-                  <input
-                    type="time"
-                    value={scheduleTime}
-                    onChange={(event) => setScheduleTime(event.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
-                  />
-                </label>
               </div>
-              {scheduleFrequency === 'weekly' ? (
-                <FilterSelect
-                  label="Day"
-                  value={String(scheduleDayOfWeek)}
-                  onChange={(value) => setScheduleDayOfWeek(Number(value))}
-                  options={DAY_OPTIONS.map((day) => ({ value: String(day.value), label: day.label }))}
-                />
-              ) : (
-                <FilterSelect
-                  label="Day of month"
-                  value={String(scheduleDayOfMonth)}
-                  onChange={(value) => setScheduleDayOfMonth(Number(value))}
-                  options={Array.from({ length: 28 }, (_, index) => ({
-                    value: String(index + 1),
-                    label: String(index + 1),
-                  }))}
-                />
-              )}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-3 text-sm text-zinc-400">
+                {scheduleFrequency === 'weekly'
+                  ? 'Weekly exports are prepared every Monday at 09:00 and include the full week that just closed.'
+                  : 'Monthly exports are prepared on the 1st at 09:00 and include the full previous calendar month.'}
+              </div>
               <button
                 type="button"
                 onClick={saveSchedule}
@@ -754,6 +795,10 @@ export default function ReportsClient({
                       <div className="mt-1 text-xs text-zinc-500">
                         Next run {getNextRun(schedule).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
                       </div>
+                      <div className="mt-1 text-xs text-zinc-500">Recipient {schedule.recipientEmail}</div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        Data window {getPreviousClosedPeriod(schedule.frequency).label}
+                      </div>
                       <div className="mt-2 text-xs text-zinc-500">
                         {describeFilters(schedule.filters, members, policies)}
                       </div>
@@ -777,7 +822,17 @@ export default function ReportsClient({
                     </button>
                     <button
                       type="button"
-                      onClick={() => void exportCsv(schedule.filters, schedule.name.toLowerCase().replace(/\s+/g, '-'))}
+                      onClick={() => {
+                        const period = getPreviousClosedPeriod(schedule.frequency);
+                        void exportCsv(
+                          {
+                            ...schedule.filters,
+                            from: period.from,
+                            to: period.to,
+                          },
+                          schedule.name.toLowerCase().replace(/\s+/g, '-'),
+                        );
+                      }}
                       className={fleetButtonClass('secondary', 'sm', 'w-full')}
                     >
                       Run export now
@@ -804,7 +859,7 @@ function describeFilters(filters: ReportFilters, members: Member[], policies: Po
     filters.from || filters.to ? [filters.from, filters.to].filter(Boolean).join(' to ') : '',
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(' • ') : 'All sessions';
+  return parts.length > 0 ? parts.join(' | ') : 'All sessions';
 }
 
 function FilterSelect({

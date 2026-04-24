@@ -7,9 +7,10 @@ export default async function EmployeesPage({
   params: Promise<{ companyId: string }>;
 }) {
   const { companyId } = await params;
-  const [membersRes, policiesRes] = await Promise.all([
+  const [membersRes, policiesRes, departmentsRes] = await Promise.all([
     apiFetch(`/fleet/companies/${companyId}/members`),
     apiFetch(`/fleet/companies/${companyId}/policies`),
+    apiFetch(`/fleet/companies/${companyId}/departments`),
   ]);
   const membersBody = membersRes.ok ? await membersRes.json() : {};
   const rawMembers = Array.isArray(membersBody) ? membersBody : (membersBody.members ?? []);
@@ -19,11 +20,23 @@ export default async function EmployeesPage({
     user_email: m.user?.email ?? m.user_email ?? '',
     role: m.role,
     status: m.status,
+    billing_mode: m.billingMode ?? m.billing_mode ?? 'COMPANY_PAID',
+    department_id: m.department?.id ?? m.department_id ?? null,
     department_name: m.department?.name ?? m.department_name ?? null,
+    policy_id: m.policy?.id ?? m.policy_id ?? null,
     policy_name: m.policy?.name ?? m.policy_name ?? null,
   }));
   const policiesBody = policiesRes.ok ? await policiesRes.json() : {};
   const policies = Array.isArray(policiesBody) ? policiesBody : (policiesBody.policies ?? []);
+  const departmentsBody = departmentsRes.ok ? await departmentsRes.json() : [];
+  const departments = Array.isArray(departmentsBody) ? departmentsBody : [];
 
-  return <EmployeesClient companyId={companyId} initialMembers={members} policies={policies} />;
+  return (
+    <EmployeesClient
+      companyId={companyId}
+      initialMembers={members}
+      policies={policies}
+      departments={departments}
+    />
+  );
 }
