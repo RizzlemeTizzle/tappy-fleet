@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowRightLeft, Check } from 'lucide-react';
+import { ArrowRightLeft, Check, Menu, X } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { fleetNavIcons } from '@/components/fleet/fleet-icons';
 import TappyLogo from '@/components/TappyLogo';
@@ -32,6 +32,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
   const router = useRouter();
   const base = `/fleet/${companyId}`;
   const [showOrgMenu, setShowOrgMenu] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const orgMenuRef = useRef<HTMLDivElement | null>(null);
 
   const allNavItems = [
@@ -59,75 +60,84 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
     return () => window.removeEventListener('mousedown', handlePointerDown);
   }, [showOrgMenu]);
 
+  useEffect(() => {
+    setShowOrgMenu(false);
+    setShowMobileNav(false);
+  }, [pathname]);
+
   const handleLogout = async () => {
     await fetch('/api/auth/clear-cookie', { method: 'POST' });
     router.push('/auth/login');
   };
 
-  return (
-    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[#070b11]">
+  const renderOrgSwitcher = () => (
+    <div className="mt-2 flex items-center gap-2" ref={orgMenuRef}>
+      <div className="min-w-0 flex-1 truncate text-sm text-zinc-400">{companyName}</div>
+      {otherMemberships.length > 0 && (
+        <div className="relative">
+          <button
+            type="button"
+            aria-label={t('label_switch_org')}
+            aria-expanded={showOrgMenu}
+            onClick={() => setShowOrgMenu((current) => !current)}
+            className={fleetButtonClass('secondary', 'icon', 'h-8 w-8 rounded-full p-0')}
+          >
+            <ArrowRightLeft size={14} />
+          </button>
+          {showOrgMenu && (
+            <div className="absolute left-0 top-11 z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-[#0b1017] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+              <div className="px-2 pb-2 pt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                {t('label_switch_org')}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOrgMenu(false);
+                  router.push('/fleet');
+                }}
+                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <span>{t('nav_all_orgs')}</span>
+              </button>
+              {memberships.map((membership) => {
+                const isCurrent = membership.company_id === companyId;
+
+                return (
+                  <button
+                    key={membership.id}
+                    type="button"
+                    disabled={isCurrent}
+                    onClick={() => {
+                      if (isCurrent) return;
+                      setShowOrgMenu(false);
+                      router.push(`/fleet/${membership.company_id}`);
+                    }}
+                    className={`mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                      isCurrent
+                        ? 'bg-white/[0.04] text-white'
+                        : 'text-zinc-300 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    <span className="truncate">{membership.company_name}</span>
+                    {isCurrent && <Check size={14} className="shrink-0 text-[#9fd5ff]" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderSidebarContent = () => (
+    <>
       <div className="border-b border-white/10 p-5">
         <div className="flex items-center gap-3">
           <TappyLogo size={36} />
           <span className="text-base font-bold text-white">Tappy Charge</span>
         </div>
-        <div className="mt-2 flex items-center gap-2" ref={orgMenuRef}>
-          <div className="min-w-0 flex-1 truncate text-sm text-zinc-400">{companyName}</div>
-          {otherMemberships.length > 0 && (
-            <div className="relative">
-              <button
-                type="button"
-                aria-label={t('label_switch_org')}
-                aria-expanded={showOrgMenu}
-                onClick={() => setShowOrgMenu((current) => !current)}
-                className={fleetButtonClass('secondary', 'icon', 'h-8 w-8 rounded-full p-0')}
-              >
-                <ArrowRightLeft size={14} />
-              </button>
-              {showOrgMenu && (
-                <div className="absolute left-0 top-11 z-30 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-[#0b1017] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-                  <div className="px-2 pb-2 pt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                    {t('label_switch_org')}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowOrgMenu(false);
-                      router.push('/fleet');
-                    }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
-                  >
-                    <span>{t('nav_all_orgs')}</span>
-                  </button>
-                  {memberships.map((membership) => {
-                    const isCurrent = membership.company_id === companyId;
-
-                    return (
-                      <button
-                        key={membership.id}
-                        type="button"
-                        disabled={isCurrent}
-                        onClick={() => {
-                          if (isCurrent) return;
-                          setShowOrgMenu(false);
-                          router.push(`/fleet/${membership.company_id}`);
-                        }}
-                        className={`mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors ${
-                          isCurrent
-                            ? 'bg-white/[0.04] text-white'
-                            : 'text-zinc-300 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <span className="truncate">{membership.company_name}</span>
-                        {isCurrent && <Check size={14} className="shrink-0 text-[#9fd5ff]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {renderOrgSwitcher()}
       </div>
 
       <nav className="flex-1 space-y-1 p-3">
@@ -176,6 +186,62 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
           <LanguageSwitcher />
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-[#070b11]/95 backdrop-blur md:hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => setShowMobileNav(true)}
+            className={fleetButtonClass('secondary', 'icon', 'h-10 w-10 rounded-xl p-0')}
+            aria-label="Open navigation"
+          >
+            <Menu size={18} />
+          </button>
+          <div className="min-w-0 flex-1 text-center">
+            <div className="truncate text-sm font-semibold text-white">{companyName}</div>
+            <div className="text-xs text-zinc-500">Tappy Charge</div>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center">
+            <TappyLogo size={28} />
+          </div>
+        </div>
+      </div>
+
+      {showMobileNav && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setShowMobileNav(false)}
+            aria-label="Close navigation overlay"
+          />
+          <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-[#070b11] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between border-b border-white/10 p-4">
+              <div className="flex items-center gap-3">
+                <TappyLogo size={32} />
+                <span className="text-base font-bold text-white">Tappy Charge</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobileNav(false)}
+                className={fleetButtonClass('secondary', 'icon', 'h-9 w-9 rounded-xl p-0')}
+                aria-label="Close navigation"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {renderSidebarContent()}
+          </div>
+        </div>
+      )}
+
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-[#070b11] md:flex">
+        {renderSidebarContent()}
+      </aside>
+    </>
   );
 }

@@ -57,13 +57,14 @@ export default function BillingClient({
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Billing & Invoices</h1>
         <p className="text-sm text-zinc-400 mt-1">Invoices are generated automatically at the end of each month.</p>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
               <th className="text-left px-5 py-3">Period</th>
@@ -104,6 +105,36 @@ export default function BillingClient({
             )}
           </tbody>
         </table>
+        </div>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {invoices.length === 0 && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+            No invoices yet. Invoices are generated automatically at the end of each month.
+          </div>
+        )}
+        {invoices.map((inv) => (
+          <article key={inv.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-white">{formatMonth(inv.periodStart)}</h2>
+                <p className="mt-1 text-sm text-zinc-400">{formatCurrency(inv.totalCents)}</p>
+              </div>
+              <span className={`rounded px-2 py-1 text-xs font-medium ${STATUS_STYLES[inv.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
+                {inv.status}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-zinc-400">Sessions: {inv._count?.lines ?? '—'}</p>
+            <button
+              onClick={() => downloadPdf(inv.id)}
+              disabled={downloading === inv.id}
+              className={fleetButtonClass('secondary', 'md', 'mt-4 w-full')}
+            >
+              {downloading === inv.id ? 'Downloading...' : 'Download PDF'}
+            </button>
+          </article>
+        ))}
       </div>
     </div>
   );

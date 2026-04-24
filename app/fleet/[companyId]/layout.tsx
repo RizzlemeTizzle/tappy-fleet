@@ -36,14 +36,14 @@ export default async function FleetCompanyLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex min-h-screen flex-col md:h-screen md:flex-row md:overflow-hidden">
       <FleetSidebar
         companyId={companyId}
         companyName={membership.company_name}
         role={membership.role}
         memberships={adminMemberships}
       />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="min-h-0 flex-1 overflow-auto">{children}</main>
     </div>
   );
 }

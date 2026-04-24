@@ -118,12 +118,12 @@ export default function PoliciesClient({
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Charging Policies</h1>
         <button
           onClick={openCreate}
-          className={fleetButtonClass('primary')}
+          className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
         >
           <Plus size={16} strokeWidth={2.3} />
           New policy
@@ -133,7 +133,7 @@ export default function PoliciesClient({
       <div className="space-y-3">
         {policies.map((p) => (
           <div key={p.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="font-semibold text-white">{p.name}</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export default function PoliciesClient({
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <button onClick={() => openEdit(p)} className={fleetButtonClass('secondary', 'sm')}>
                   Edit
                 </button>
@@ -191,7 +191,7 @@ export default function PoliciesClient({
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-sm text-zinc-400">Max per session (EUR)</label>
                   <input
@@ -217,7 +217,7 @@ export default function PoliciesClient({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-sm text-zinc-400">Allowed from (hour)</label>
                   <select
@@ -269,7 +269,7 @@ export default function PoliciesClient({
                   <span className="text-sm text-zinc-300">AC charging only (no DC fast charge)</span>
                 </label>
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row">
                 <button type="button" onClick={() => setShowEditor(false)} className={fleetButtonClass('secondary', 'md', 'flex-1')}>
                   Cancel
                 </button>

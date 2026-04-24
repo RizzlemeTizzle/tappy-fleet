@@ -98,20 +98,21 @@ export default function EmployeesClient({
   void policies;
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Employees</h1>
         <button
           onClick={() => setShowInvite(true)}
-          className={fleetButtonClass('primary')}
+          className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
         >
           <Plus size={16} strokeWidth={2.3} />
           Invite member
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
-        <table className="w-full text-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
               <th className="px-5 py-3 text-left">Name</th>
@@ -161,6 +162,49 @@ export default function EmployeesClient({
             )}
           </tbody>
         </table>
+        </div>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {members.length === 0 && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+            No members yet. Invite your first employee.
+          </div>
+        )}
+        {members.map((m) => (
+          <article key={m.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate font-semibold text-white">{m.user_name ?? '-'}</h2>
+                <p className="mt-1 break-all text-sm text-zinc-400">{m.user_email}</p>
+              </div>
+              <span className={`shrink-0 rounded px-2 py-1 text-xs font-medium ${STATUS_STYLES[m.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
+                {m.status}
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-300">
+              <span className="rounded bg-zinc-800 px-2 py-1">{m.role.replace(/_/g, ' ')}</span>
+              {m.department_name && <span className="rounded bg-zinc-800 px-2 py-1">{m.department_name}</span>}
+              {m.policy_name && <span className="rounded bg-zinc-800 px-2 py-1">{m.policy_name}</span>}
+            </div>
+            <div className="mt-4 flex flex-col gap-2">
+              <button
+                onClick={() => handleSuspend(m.id, m.status)}
+                className={fleetButtonClass('secondary', 'md', 'w-full')}
+              >
+                {m.status === 'SUSPENDED' ? 'Activate' : 'Suspend'}
+              </button>
+              {m.role !== 'FLEET_OWNER' && (
+                <button
+                  onClick={() => handleRemove(m.id)}
+                  className={fleetButtonClass('danger', 'md', 'w-full')}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
       </div>
 
       {showInvite && (
@@ -203,7 +247,7 @@ export default function EmployeesClient({
                   ))}
                 </select>
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row">
                 <button
                   type="button"
                   onClick={() => setShowInvite(false)}

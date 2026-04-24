@@ -78,25 +78,25 @@ export default function ReportsClient({
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-white">Session Reports</h1>
         <button
           onClick={exportCsv}
           disabled={exporting}
-          className={fleetButtonClass('secondary')}
+          className={fleetButtonClass('secondary', 'md', 'w-full sm:w-auto')}
         >
           <Download size={16} strokeWidth={2.2} />
           {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
       </div>
 
-      <div className="mb-6 flex items-end gap-3">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap xl:items-end">
         <DatePicker label="From" value={fromDate} onChange={setFromDate} />
         <DatePicker label="To" value={toDate} onChange={setToDate} />
         <button
           onClick={applyFilter}
-          className={fleetButtonClass('primary')}
+          className={fleetButtonClass('primary', 'md', 'w-full sm:col-span-2 xl:w-auto')}
         >
           <Filter size={16} strokeWidth={2.2} />
           Apply
@@ -105,8 +105,9 @@ export default function ReportsClient({
 
       <div className="mb-3 text-sm text-zinc-400">{total} sessions total</div>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
-        <table className="w-full text-sm">
+      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[840px] text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400">
               <th className="px-4 py-3 text-left">Employee</th>
@@ -150,7 +151,50 @@ export default function ReportsClient({
             )}
           </tbody>
         </table>
+        </div>
       </div>
+
+      <div className="space-y-3 md:hidden">
+        {initialSessions.length === 0 && (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+            No sessions found for the selected period.
+          </div>
+        )}
+        {initialSessions.map((s) => (
+          <article key={s.session_id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate font-semibold text-white">{s.employee_name}</h2>
+                <p className="mt-1 break-all text-sm text-zinc-500">{s.employee_email}</p>
+              </div>
+              <span
+                className={`rounded px-2 py-1 text-xs font-medium ${
+                  s.billing_mode === 'COMPANY_PAID'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-blue-500/20 text-blue-400'
+                }`}
+              >
+                {s.billing_mode === 'COMPANY_PAID' ? 'Company' : 'Reimbursable'}
+              </span>
+            </div>
+            <dl className="mt-4 space-y-2 text-sm">
+              <MobileRow label="Station" value={s.station_name} />
+              <MobileRow label="Date" value={formatDate(s.started_at)} />
+              <MobileRow label="kWh" value={s.delivered_kwh.toFixed(2)} />
+              <MobileRow label="Cost" value={formatCurrency(s.total_cost_cents)} />
+            </dl>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <dt className="text-zinc-500">{label}</dt>
+      <dd className="text-right text-zinc-200">{value}</dd>
     </div>
   );
 }

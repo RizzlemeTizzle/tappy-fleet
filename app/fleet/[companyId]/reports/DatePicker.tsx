@@ -85,12 +85,12 @@ export default function DatePicker({
   const cells = calendarDays(viewYear, viewMonth);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative w-full xl:w-auto">
       <label className="text-xs text-zinc-400 block mb-1">{label}</label>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#4CAF50] hover:border-zinc-600 transition-colors min-w-[148px]"
+        className="flex w-full items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white transition-colors hover:border-zinc-600 focus:border-[#4CAF50] focus:outline-none sm:min-w-[148px] xl:w-auto"
       >
         <svg className="w-4 h-4 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
           <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -100,7 +100,7 @@ export default function DatePicker({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-4 w-64">
+        <div className="absolute left-0 z-50 mt-1 w-[min(16rem,calc(100vw-2rem))] rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-3">
             <button
