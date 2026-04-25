@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { Pencil, Plus, UserPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FleetCard, FleetPageHeader } from '@/components/fleet/FleetDashboard';
+import { Pagination } from '@/components/fleet/Pagination';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -105,18 +106,33 @@ export default function EmployeesClient({
   initialMembers,
   policies,
   departments: initialDepartments,
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
 }: {
   companyId: string;
   initialMembers: Member[];
   policies: Policy[];
   departments: Department[];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
 }) {
   const t = useT();
   const router = useRouter();
+  const pathname = usePathname();
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
   useEffect(() => { setMembers(initialMembers); }, [initialMembers]);
   useEffect(() => { setDepartments(initialDepartments); }, [initialDepartments]);
+
+  const goToPage = (page: number) => {
+    startTransition(() => {
+      router.push(page === 1 ? pathname : `${pathname}?page=${page}`);
+    });
+  };
 
   // Invite modal state
   const [showInvite, setShowInvite] = useState(false);
@@ -416,6 +432,9 @@ export default function EmployeesClient({
             </tbody>
           </table>
         </div>
+        <div className="border-t border-zinc-800 px-4">
+          <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
+        </div>
       </FleetCard>
 
       {/* Mobile cards */}
@@ -477,6 +496,9 @@ export default function EmployeesClient({
             </div>
           </FleetCard>
         ))}
+      </div>
+      <div className="md:hidden">
+        <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
       </div>
 
       {/* Invite member modal */}

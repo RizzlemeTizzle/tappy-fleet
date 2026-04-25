@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { startTransition, useState } from 'react';
 import { CheckCircle2, Download, MessageSquareText, WalletCards, XCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FleetCard, FleetPageHeader, StatusPill } from '@/components/fleet/FleetDashboard';
+import { Pagination } from '@/components/fleet/Pagination';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -71,19 +72,29 @@ export default function ReimbursementsClient({
   companyId,
   initialSummary,
   initialReimbursements,
+  activeStatus,
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
 }: {
   companyId: string;
   initialSummary: ReimbursementSummary;
   initialReimbursements: Reimbursement[];
+  activeStatus: (typeof FILTERS)[number]['value'];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
 }) {
   const t = useT();
   const router = useRouter();
+  const pathname = usePathname();
   const tr = (key: string, fallback: string) => {
     const value = t(key);
     return value === key ? fallback : value;
   };
 
-  const [activeFilter, setActiveFilter] = useState<(typeof FILTERS)[number]['value']>('ALL');
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [modalRequest, setModalRequest] = useState<Reimbursement | null>(null);
   const [decision, setDecision] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
@@ -91,13 +102,26 @@ export default function ReimbursementsClient({
   const [approvedAmount, setApprovedAmount] = useState('');
   const [feedback, setFeedback] = useState('');
 
-  const reimbursements = useMemo(
-    () =>
-      initialReimbursements.filter((item) =>
-        activeFilter === 'ALL' ? true : item.status === activeFilter,
-      ),
-    [activeFilter, initialReimbursements],
-  );
+  const reimbursements = initialReimbursements;
+
+  const setFilter = (value: (typeof FILTERS)[number]['value']) => {
+    const qs = new URLSearchParams();
+    if (value !== 'ALL') qs.set('status', value);
+    startTransition(() => {
+      const search = qs.toString();
+      router.push(search ? `${pathname}?${search}` : pathname);
+    });
+  };
+
+  const goToPage = (page: number) => {
+    const qs = new URLSearchParams();
+    if (activeStatus !== 'ALL') qs.set('status', activeStatus);
+    if (page > 1) qs.set('page', String(page));
+    startTransition(() => {
+      const search = qs.toString();
+      router.push(search ? `${pathname}?${search}` : pathname);
+    });
+  };
 
   const openReview = (request: Reimbursement, nextDecision: 'APPROVED' | 'REJECTED') => {
     setModalRequest(request);
@@ -161,7 +185,7 @@ export default function ReimbursementsClient({
   const exportCsv = async () => {
     setFeedback('');
     try {
-      const qs = activeFilter === 'ALL' ? '' : `?status=${activeFilter}`;
+      const qs = activeStatus === 'ALL' ? '' : `?status=${activeStatus}`;
       const res = await fetch(`/api/fleet/${companyId}/reimbursements/export${qs}`);
       if (!res.ok) {
         setFeedback('Could not export reimbursements.');
@@ -225,12 +249,12 @@ export default function ReimbursementsClient({
 
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((filter) => {
-          const isActive = filter.value === activeFilter;
+          const isActive = filter.value === activeStatus;
           return (
             <button
               key={filter.value}
               type="button"
-              onClick={() => setActiveFilter(filter.value)}
+              onClick={() => setFilter(filter.value)}
               className={
                 isActive
                   ? 'rounded-full border border-[#33d6c5]/40 bg-[#33d6c5]/15 px-4 py-2 text-sm font-medium text-white'
@@ -249,7 +273,7 @@ export default function ReimbursementsClient({
         </div>
       )}
 
-      <FleetCard className="mt-6 hidden overflow-hidden md:block">
+      <FleetCard className="mt-6 hidden flex-col overflow-hidden md:flex">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] text-sm">
             <thead>
@@ -327,6 +351,9 @@ export default function ReimbursementsClient({
             </tbody>
           </table>
         </div>
+        <div className="border-t border-zinc-800 px-4">
+          <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
+        </div>
       </FleetCard>
 
       <div className="mt-6 space-y-3 md:hidden">
@@ -383,6 +410,9 @@ export default function ReimbursementsClient({
             )}
           </FleetCard>
         ))}
+      </div>
+      <div className="md:hidden">
+        <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
       </div>
 
       {modalRequest && (

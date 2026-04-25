@@ -29,11 +29,11 @@ export default async function ReportsPage({
 
   const [sessionsRes, membersRes, policiesRes] = await Promise.all([
     apiFetch(`/fleet/companies/${companyId}/reports/sessions?${qs}`),
-    apiFetch(`/fleet/companies/${companyId}/members`),
-    apiFetch(`/fleet/companies/${companyId}/policies`),
+    apiFetch(`/fleet/companies/${companyId}/members?pageSize=1000`),
+    apiFetch(`/fleet/companies/${companyId}/policies?pageSize=1000`),
   ]);
 
-  const data = sessionsRes.ok ? await sessionsRes.json() : { sessions: [], total: 0 };
+  const data = sessionsRes.ok ? await sessionsRes.json() : { sessions: [], total: 0, page: 1, pageSize: 50, totalPages: 1 };
   const membersBody = membersRes.ok ? await membersRes.json() : {};
   const rawMembers = Array.isArray(membersBody) ? membersBody : (membersBody.members ?? []);
   const members = rawMembers.map((m: any) => ({
@@ -53,6 +53,9 @@ export default async function ReportsPage({
       companyId={companyId}
       initialSessions={data.sessions ?? []}
       total={data.total ?? 0}
+      currentPage={data.page ?? 1}
+      totalPages={data.totalPages ?? 1}
+      pageSize={data.pageSize ?? 50}
       members={members}
       policies={policies}
       from={sp.from ?? ''}

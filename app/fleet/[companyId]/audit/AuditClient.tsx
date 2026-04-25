@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { startTransition, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { FleetCard } from '@/components/fleet/FleetDashboard';
+import { Pagination } from '@/components/fleet/Pagination';
 import { useT } from '@/lib/i18n';
 
 interface AuditEntry {
@@ -39,6 +41,10 @@ interface Props {
   members: MemberLookup[];
   policies: PolicyLookup[];
   invoices: InvoiceLookup[];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
 }
 
 function formatDate(iso: string) {
@@ -91,9 +97,17 @@ function extractDiffRows(changes: Record<string, unknown> | null): DiffRow[] {
   });
 }
 
-export function AuditClient({ companyId: _companyId, logs, members, policies, invoices }: Props) {
+export function AuditClient({ companyId: _companyId, logs, members, policies, invoices, currentPage, totalPages, total, pageSize }: Props) {
   const t = useT();
+  const router = useRouter();
+  const pathname = usePathname();
   const [search, setSearch] = useState('');
+
+  const goToPage = (page: number) => {
+    startTransition(() => {
+      router.push(page === 1 ? pathname : `${pathname}?page=${page}`);
+    });
+  };
 
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const membersByUserId = useMemo(
@@ -206,6 +220,7 @@ export function AuditClient({ companyId: _companyId, logs, members, policies, in
           </table>
         </div>
       </FleetCard>
+      <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
     </div>
   );
 }

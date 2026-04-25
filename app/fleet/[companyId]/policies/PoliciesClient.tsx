@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FleetCard, FleetPageHeader } from '@/components/fleet/FleetDashboard';
+import { Pagination } from '@/components/fleet/Pagination';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -53,17 +54,32 @@ export default function PoliciesClient({
   companyId,
   initialPolicies,
   members,
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
 }: {
   companyId: string;
   initialPolicies: Policy[];
   members: MemberOption[];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
 }) {
   const t = useT();
   const router = useRouter();
+  const pathname = usePathname();
   const [policies, setPolicies] = useState<Policy[]>(initialPolicies);
   useEffect(() => {
     setPolicies(initialPolicies);
   }, [initialPolicies]);
+
+  const goToPage = (page: number) => {
+    startTransition(() => {
+      router.push(page === 1 ? pathname : `${pathname}?page=${page}`);
+    });
+  };
   const [showEditor, setShowEditor] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyPolicy);
@@ -247,6 +263,7 @@ export default function PoliciesClient({
           <FleetCard className="py-16 text-center text-zinc-500">{t('policies_empty')}</FleetCard>
         )}
       </div>
+      <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
 
       {showEditor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">

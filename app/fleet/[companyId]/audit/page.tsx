@@ -30,17 +30,23 @@ interface InvoiceLookup {
   status: string;
 }
 
+const PAGE_SIZE = 50;
+
 export default async function AuditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ companyId: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { companyId } = await params;
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp.page ?? '1'));
 
   const [auditRes, membersRes, policiesRes, invoicesRes] = await Promise.all([
-    apiFetch(`/fleet/companies/${companyId}/audit-log`),
-    apiFetch(`/fleet/companies/${companyId}/members`),
-    apiFetch(`/fleet/companies/${companyId}/policies`),
+    apiFetch(`/fleet/companies/${companyId}/audit-log?page=${page}&pageSize=${PAGE_SIZE}`),
+    apiFetch(`/fleet/companies/${companyId}/members?pageSize=1000`),
+    apiFetch(`/fleet/companies/${companyId}/policies?pageSize=1000`),
     apiFetch(`/fleet/companies/${companyId}/billing/invoices`),
   ]);
 
@@ -50,6 +56,9 @@ export default async function AuditPage({
   const invoiceBody = invoicesRes.ok ? await invoicesRes.json() : {};
 
   const logs: AuditEntry[] = auditBody.logs ?? [];
+  const total: number = auditBody.total ?? logs.length;
+  const totalPages: number = auditBody.totalPages ?? Math.ceil(total / PAGE_SIZE);
+
   const rawMembers = Array.isArray(memberBody) ? memberBody : (memberBody.members ?? []);
   const rawPolicies = Array.isArray(policyBody) ? policyBody : (policyBody.policies ?? []);
   const rawInvoices = invoiceBody.invoices ?? [];
@@ -80,6 +89,10 @@ export default async function AuditPage({
       members={members}
       policies={policies}
       invoices={invoices}
+      currentPage={page}
+      totalPages={totalPages}
+      total={total}
+      pageSize={PAGE_SIZE}
     />
   );
 }

@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import { FileText } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { FleetCard, FleetPageHeader, StatusPill } from '@/components/fleet/FleetDashboard';
+import { Pagination } from '@/components/fleet/Pagination';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -33,16 +35,32 @@ function formatCurrency(cents: number) {
 export default function BillingClient({
   companyId,
   initialInvoices,
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
 }: {
   companyId: string;
   initialInvoices: Invoice[];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
 }) {
   const t = useT();
+  const router = useRouter();
+  const pathname = usePathname();
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   useEffect(() => {
     setInvoices(initialInvoices);
   }, [initialInvoices]);
   const [downloading, setDownloading] = useState<string | null>(null);
+
+  const goToPage = (page: number) => {
+    startTransition(() => {
+      router.push(page === 1 ? pathname : `${pathname}?page=${page}`);
+    });
+  };
 
   const downloadPdf = async (invoiceId: string) => {
     setDownloading(invoiceId);
@@ -113,6 +131,9 @@ export default function BillingClient({
           </tbody>
         </table>
         </div>
+        <div className="border-t border-zinc-800 px-4">
+          <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
+        </div>
       </FleetCard>
 
       <div className="space-y-3 md:hidden">
@@ -145,6 +166,9 @@ export default function BillingClient({
             </button>
           </FleetCard>
         ))}
+      </div>
+      <div className="md:hidden">
+        <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { startTransition, useEffect, useMemo, useState } from 'react';
+import { Pagination } from '@/components/fleet/Pagination';
 import { AlertTriangle, CalendarClock, Download, Filter, Save, Trash2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import DatePicker from './DatePicker';
@@ -181,6 +182,9 @@ export default function ReportsClient({
   companyId,
   initialSessions,
   total,
+  currentPage,
+  totalPages,
+  pageSize,
   members,
   policies,
   from,
@@ -193,6 +197,9 @@ export default function ReportsClient({
   companyId: string;
   initialSessions: Session[];
   total: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
   members: Member[];
   policies: Policy[];
   from: string;
@@ -385,6 +392,16 @@ export default function ReportsClient({
     const qs = buildSearchParams(filters).toString();
     startTransition(() => {
       router.push(qs ? `${pathname}?${qs}` : pathname);
+    });
+  };
+
+  const goToPage = (page: number) => {
+    const qs = buildSearchParams(filters);
+    if (page > 1) qs.set('page', String(page));
+    else qs.delete('page');
+    const search = qs.toString();
+    startTransition(() => {
+      router.push(search ? `${pathname}?${search}` : pathname);
     });
   };
 
@@ -631,6 +648,9 @@ export default function ReportsClient({
                 </tbody>
               </table>
             </div>
+          <div className="border-t border-zinc-800 px-4">
+              <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
+            </div>
           </FleetCard>
 
           <div className="space-y-3 md:hidden">
@@ -673,6 +693,9 @@ export default function ReportsClient({
                 </dl>
               </FleetCard>
             ))}
+          </div>
+          <div className="md:hidden">
+            <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
           </div>
         </section>
 
