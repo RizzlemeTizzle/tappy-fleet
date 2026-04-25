@@ -85,6 +85,11 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     setError('');
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/clear-cookie', { method: 'POST' });
+    router.push('/auth/login');
+  };
+
   const setField =
     (field: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -132,6 +137,15 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
             <CreateOrgButton className="mt-6" />
           </div>
         )}
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={fleetButtonClass('danger')}
+          >
+            {t('nav_sign_out')}
+          </button>
+        </div>
       </div>
     );
   }
