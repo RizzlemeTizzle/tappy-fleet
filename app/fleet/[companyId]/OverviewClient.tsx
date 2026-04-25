@@ -117,14 +117,6 @@ export function OverviewClient({ companyId, overview }: Props) {
       icon: ReceiptText,
       tone: 'red',
     },
-    {
-      label: 'Employees without policy',
-      description: 'Active employees not assigned to a charging policy.',
-      href: `${base}/employees`,
-      value: overview.members_missing_policy ?? 0,
-      icon: Users,
-      tone: 'amber',
-    },
   ];
 
   const visibleAttentionItems = attentionItems.filter((item) => item.value > 0);
@@ -307,4 +299,3 @@ export function OverviewClient({ companyId, overview }: Props) {
     </div>
   );
 }
-
