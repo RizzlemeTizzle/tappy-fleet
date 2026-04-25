@@ -624,7 +624,6 @@ export default function EmployeesClient({
                   <select
                     value={editForm.billingMode}
                     onChange={(e) => setEditForm((f) => ({ ...f, billingMode: e.target.value }))}
-                    disabled={isOwner(editingMember)}
                     className={inputCls}
                   >
                     {BILLING_MODES.map((mode) => (

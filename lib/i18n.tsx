@@ -131,6 +131,10 @@ const KEY_ALIASES: Record<string, string> = {
   policy_hours_until:       'label_allowed_until',
   policy_save_failed:       'err_save_failed',
   policies_empty:           'no_policies',
+  policy_enforcement_label: 'label_enforcement',
+  policy_soft_option:       'opt_soft_policy',
+  policy_mandatory_option:  'opt_mandatory_policy',
+  policy_mandatory_badge:   'badge_mandatory',
   // Audit
   audit_col_time:           'col_time',
   audit_col_action:         'col_action',

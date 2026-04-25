@@ -27,6 +27,7 @@ interface Policy {
   acOnly: boolean;
   dcAllowed: boolean;
   roamingAllowed: boolean;
+  mandatory: boolean;
 }
 
 interface MemberOption {
@@ -45,6 +46,7 @@ const emptyPolicy = {
   allowedHoursEnd: '',
   businessDaysOnly: false,
   acOnly: false,
+  mandatory: false,
 };
 
 export default function PoliciesClient({
@@ -87,6 +89,7 @@ export default function PoliciesClient({
       allowedHoursEnd: policy.allowedHoursEnd != null ? String(policy.allowedHoursEnd) : '',
       businessDaysOnly: policy.businessDaysOnly,
       acOnly: policy.acOnly,
+      mandatory: policy.mandatory,
     });
     setError('');
     setShowEditor(true);
@@ -115,6 +118,7 @@ export default function PoliciesClient({
       allowedHoursEnd: form.allowedHoursEnd !== '' ? parseInt(form.allowedHoursEnd, 10) : null,
       businessDaysOnly: form.businessDaysOnly,
       acOnly: form.acOnly,
+      mandatory: form.mandatory,
     };
     try {
       const url = editingId
@@ -186,6 +190,11 @@ export default function PoliciesClient({
               <div>
                 <h3 className="font-semibold text-white">{policy.name}</h3>
                 <div className="mt-2 flex flex-wrap gap-2">
+                  {policy.mandatory && (
+                    <span className="rounded bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-400">
+                      {t('policy_mandatory_badge')}
+                    </span>
+                  )}
                   {policy.applyToAll && (
                     <span className="rounded bg-[#33d6c5]/15 px-2 py-0.5 text-xs text-[#8cf0e6]">
                       Applies to all employees
@@ -368,6 +377,31 @@ export default function PoliciesClient({
                   />
                   <span className="text-sm text-zinc-300">{t('policy_ac_only_label')}</span>
                 </label>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_enforcement_label')}</label>
+                <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-zinc-900">
+                    <input
+                      type="radio"
+                      name="mandatory"
+                      checked={!form.mandatory}
+                      onChange={() => setForm((current) => ({ ...current, mandatory: false }))}
+                      className="mt-0.5 accent-[#33d6c5]"
+                    />
+                    <span className="text-sm text-zinc-200">{t('policy_soft_option')}</span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-zinc-900">
+                    <input
+                      type="radio"
+                      name="mandatory"
+                      checked={form.mandatory}
+                      onChange={() => setForm((current) => ({ ...current, mandatory: true }))}
+                      className="mt-0.5 accent-[#33d6c5]"
+                    />
+                    <span className="text-sm text-zinc-200">{t('policy_mandatory_option')}</span>
+                  </label>
+                </div>
               </div>
               <div className="flex flex-col gap-2 pt-2 sm:flex-row">
                 <button type="button" onClick={() => setShowEditor(false)} className={fleetButtonClass('secondary', 'md', 'flex-1')}>

@@ -52,6 +52,9 @@ const ROLE_COLORS: Record<string, string> = {
 const inputCls =
   'w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:border-[#33d6c5] focus:outline-none';
 
+const selectCls =
+  'w-full rounded-lg border border-white/10 bg-[#0b0f17] px-3 py-2.5 text-sm text-white focus:border-[#33d6c5] focus:outline-none [&>option]:bg-[#0b0f17] [&>option]:text-white';
+
 const ORGANIZATION_USER_ROLES = [
   { value: 'FLEET_ADMIN', label: 'Fleet admin' },
   { value: 'FINANCE_ADMIN', label: 'Finance admin' },
@@ -504,7 +507,7 @@ export default function OrganizationHub({ organizations, totalMemberships, organ
               <select
                 value={inviteForm.role}
                 onChange={setInviteField('role')}
-                className={inputCls}
+                className={selectCls}
               >
                 {ORGANIZATION_USER_ROLES.map((role) => (
                   <option key={role.value} value={role.value}>
@@ -549,7 +552,7 @@ export default function OrganizationHub({ organizations, totalMemberships, organ
                             value={user.role}
                             onChange={(e) => void handleUpdateOrganizationUser(user, e.target.value)}
                             disabled={userBusyId === user.id}
-                            className={inputCls}
+                            className={selectCls}
                           >
                             {ORGANIZATION_USER_ROLES.map((role) => (
                               <option key={role.value} value={role.value}>
