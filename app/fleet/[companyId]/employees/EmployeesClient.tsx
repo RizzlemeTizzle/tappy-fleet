@@ -395,15 +395,13 @@ export default function EmployeesClient({
                       >
                         {member.status === 'SUSPENDED' ? t('emp_activate') : t('emp_suspend')}
                       </button>
-                      {!isOwner(member) && (
-                        <button
-                          onClick={() => handleRemove(member.id)}
-                          disabled={busyMemberId === member.id}
-                          className={fleetButtonClass('danger', 'sm')}
-                        >
-                          {t('emp_remove')}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleRemove(member.id)}
+                        disabled={busyMemberId === member.id}
+                        className={fleetButtonClass('danger', 'sm')}
+                      >
+                        {t('emp_remove')}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -469,15 +467,13 @@ export default function EmployeesClient({
               >
                 {member.status === 'SUSPENDED' ? t('emp_activate') : t('emp_suspend')}
               </button>
-              {!isOwner(member) && (
-                <button
-                  onClick={() => handleRemove(member.id)}
-                  disabled={busyMemberId === member.id}
-                  className={fleetButtonClass('danger', 'md', 'w-full')}
-                >
-                  {t('emp_remove')}
-                </button>
-              )}
+              <button
+                onClick={() => handleRemove(member.id)}
+                disabled={busyMemberId === member.id}
+                className={fleetButtonClass('danger', 'md', 'w-full')}
+              >
+                {t('emp_remove')}
+              </button>
             </div>
           </FleetCard>
         ))}
