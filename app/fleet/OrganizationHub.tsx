@@ -24,9 +24,21 @@ export interface OrganizationSummary {
   canDelete: boolean;
 }
 
+export interface OrganizationUser {
+  id: string;
+  company_id: string;
+  user_name: string | null;
+  user_email: string;
+  invited_email: string | null;
+  role: string;
+  status: string;
+  employee_access: boolean;
+}
+
 interface Props {
   organizations: OrganizationSummary[];
   totalMemberships: number;
+  organizationUsers: Record<string, OrganizationUser[]>;
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -40,6 +52,11 @@ const ROLE_COLORS: Record<string, string> = {
 const inputCls =
   'w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:border-[#33d6c5] focus:outline-none';
 
+const ORGANIZATION_USER_ROLES = [
+  { value: 'FLEET_ADMIN', label: 'Fleet admin' },
+  { value: 'FINANCE_ADMIN', label: 'Finance admin' },
+];
+
 function buildForm(org: OrganizationSummary) {
   return {
     name: org.companyName,
@@ -52,12 +69,21 @@ function buildForm(org: OrganizationSummary) {
   };
 }
 
-export default function OrganizationHub({ organizations, totalMemberships }: Props) {
+export default function OrganizationHub({ organizations, totalMemberships, organizationUsers }: Props) {
   const t = useT();
   const router = useRouter();
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
+  const [managingUsersCompanyId, setManagingUsersCompanyId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [userBusyId, setUserBusyId] = useState<string | null>(null);
+  const [invitingOrgUser, setInvitingOrgUser] = useState(false);
   const [error, setError] = useState('');
+  const [userError, setUserError] = useState('');
+  const [usersByCompany, setUsersByCompany] = useState(organizationUsers);
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    role: 'FLEET_ADMIN',
+  });
   const [form, setForm] = useState({
     name: '',
     legalName: '',
@@ -73,6 +99,13 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     [editingCompanyId, organizations],
   );
 
+  const managingUsersOrg = useMemo(
+    () => organizations.find((org) => org.companyId === managingUsersCompanyId) ?? null,
+    [managingUsersCompanyId, organizations],
+  );
+
+  const managedUsers = managingUsersCompanyId ? (usersByCompany[managingUsersCompanyId] ?? []) : [];
+
   const openEditor = (org: OrganizationSummary) => {
     setError('');
     setEditingCompanyId(org.companyId);
@@ -85,6 +118,18 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     setError('');
   };
 
+  const openUserManager = (org: OrganizationSummary) => {
+    setUserError('');
+    setInviteForm({ email: '', role: 'FLEET_ADMIN' });
+    setManagingUsersCompanyId(org.companyId);
+  };
+
+  const closeUserManager = () => {
+    if (invitingOrgUser || userBusyId) return;
+    setManagingUsersCompanyId(null);
+    setUserError('');
+  };
+
   const handleLogout = async () => {
     await fetch('/api/auth/clear-cookie', { method: 'POST' });
     router.push('/auth/login');
@@ -95,6 +140,110 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setForm((current) => ({ ...current, [field]: e.target.value }));
     };
+
+  const setInviteField =
+    (field: keyof typeof inviteForm) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      setInviteForm((current) => ({ ...current, [field]: e.target.value }));
+    };
+
+  async function handleInviteOrganizationUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!managingUsersOrg) return;
+
+    setInvitingOrgUser(true);
+    setUserError('');
+
+    try {
+      const res = await fetch(`/api/fleet/${managingUsersOrg.companyId}/organization-users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inviteForm),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUserError(body.error ?? 'Could not add organization user.');
+        return;
+      }
+
+      const nextUser = body.user as OrganizationUser;
+      setUsersByCompany((current) => {
+        const users = current[managingUsersOrg.companyId] ?? [];
+        const nextUsers = users.some((user) => user.id === nextUser.id)
+          ? users.map((user) => (user.id === nextUser.id ? nextUser : user))
+          : [...users, nextUser];
+        return { ...current, [managingUsersOrg.companyId]: nextUsers };
+      });
+      setInviteForm({ email: '', role: 'FLEET_ADMIN' });
+      router.refresh();
+    } catch {
+      setUserError(t('network_error'));
+    } finally {
+      setInvitingOrgUser(false);
+    }
+  }
+
+  async function handleUpdateOrganizationUser(user: OrganizationUser, role: string) {
+    if (!managingUsersOrg || user.role === 'FLEET_OWNER') return;
+
+    setUserBusyId(user.id);
+    setUserError('');
+
+    try {
+      const res = await fetch(`/api/fleet/${managingUsersOrg.companyId}/organization-users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUserError(body.error ?? 'Could not update organization user.');
+        return;
+      }
+
+      const nextUser = body.user as OrganizationUser;
+      setUsersByCompany((current) => ({
+        ...current,
+        [managingUsersOrg.companyId]: (current[managingUsersOrg.companyId] ?? []).map((item) =>
+          item.id === nextUser.id ? nextUser : item,
+        ),
+      }));
+      router.refresh();
+    } catch {
+      setUserError(t('network_error'));
+    } finally {
+      setUserBusyId(null);
+    }
+  }
+
+  async function handleRemoveOrganizationUser(user: OrganizationUser) {
+    if (!managingUsersOrg || user.role === 'FLEET_OWNER') return;
+    if (!confirm('Remove organization access for this user?')) return;
+
+    setUserBusyId(user.id);
+    setUserError('');
+
+    try {
+      const res = await fetch(`/api/fleet/${managingUsersOrg.companyId}/organization-users/${user.id}`, {
+        method: 'DELETE',
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUserError(body.error ?? 'Could not remove organization user.');
+        return;
+      }
+
+      setUsersByCompany((current) => ({
+        ...current,
+        [managingUsersOrg.companyId]: (current[managingUsersOrg.companyId] ?? []).filter((item) => item.id !== user.id),
+      }));
+      router.refresh();
+    } catch {
+      setUserError(t('network_error'));
+    } finally {
+      setUserBusyId(null);
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -233,6 +382,15 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
                   {t('hub_manage_details')}
                 </button>
               )}
+              {org.canEdit && (
+                <button
+                  type="button"
+                  onClick={() => openUserManager(org)}
+                  className={fleetButtonClass('secondary')}
+                >
+                  Organization users
+                </button>
+              )}
             </div>
             {org.role === 'FLEET_OWNER' && (
               <p className="mt-4 text-sm text-zinc-400">
@@ -307,6 +465,126 @@ export default function OrganizationHub({ organizations, totalMemberships }: Pro
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {managingUsersOrg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-[28px] border border-white/10 bg-[#0b0f17] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-white">Organization users</h2>
+                <p className="mt-1 text-sm text-zinc-400">{managingUsersOrg.companyName}</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeUserManager}
+                className={fleetButtonClass('subtle', 'sm', 'min-h-0 rounded-lg px-3 py-2 text-zinc-400')}
+              >
+                {t('btn_close')}
+              </button>
+            </div>
+
+            {userError && (
+              <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {userError}
+              </div>
+            )}
+
+            <form onSubmit={handleInviteOrganizationUser} className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-[1fr_180px_auto]">
+              <input
+                type="email"
+                value={inviteForm.email}
+                onChange={setInviteField('email')}
+                required
+                className={inputCls}
+                placeholder="admin@company.com"
+              />
+              <select
+                value={inviteForm.role}
+                onChange={setInviteField('role')}
+                className={inputCls}
+              >
+                {ORGANIZATION_USER_ROLES.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={invitingOrgUser}
+                className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
+              >
+                {invitingOrgUser ? t('emp_invite_sending') : 'Add user'}
+              </button>
+            </form>
+
+            <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
+              <table className="w-full min-w-[680px] text-sm">
+                <thead className="bg-white/[0.03] text-left text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <tr>
+                    <th className="px-4 py-3">User</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Employee</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {managedUsers.map((user) => (
+                    <tr key={user.id} className="border-t border-white/10">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-white">{user.user_name ?? '-'}</div>
+                        <div className="text-xs text-zinc-400">{user.user_email}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {user.role === 'FLEET_OWNER' ? (
+                          <span className={`rounded-full px-3 py-1 text-xs font-medium ${ROLE_COLORS.FLEET_OWNER}`}>
+                            FLEET OWNER
+                          </span>
+                        ) : (
+                          <select
+                            value={user.role}
+                            onChange={(e) => void handleUpdateOrganizationUser(user, e.target.value)}
+                            disabled={userBusyId === user.id}
+                            className={inputCls}
+                          >
+                            {ORGANIZATION_USER_ROLES.map((role) => (
+                              <option key={role.value} value={role.value}>
+                                {role.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-300">{user.status.toLowerCase()}</td>
+                      <td className="px-4 py-3 text-zinc-300">{user.employee_access ? 'Yes' : 'No'}</td>
+                      <td className="px-4 py-3 text-right">
+                        {user.role !== 'FLEET_OWNER' && (
+                          <button
+                            type="button"
+                            onClick={() => void handleRemoveOrganizationUser(user)}
+                            disabled={userBusyId === user.id}
+                            className={fleetButtonClass('danger', 'sm')}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {managedUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-zinc-500">
+                        No organization users yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

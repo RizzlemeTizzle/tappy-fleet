@@ -11,6 +11,17 @@ interface Membership {
   status: string;
 }
 
+interface OrganizationUser {
+  id: string;
+  company_id: string;
+  user_name: string | null;
+  user_email: string;
+  invited_email: string | null;
+  role: string;
+  status: string;
+  employee_access: boolean;
+}
+
 const ADMIN_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN', 'FINANCE_ADMIN'];
 const EDIT_ROLES = ['FLEET_OWNER', 'FLEET_ADMIN'];
 
@@ -75,12 +86,26 @@ export default async function FleetRootPage() {
     }),
   );
 
+  const organizationUsers = Object.fromEntries(
+    await Promise.all(
+      organizations.map(async (org) => {
+        const usersRes = await apiFetch(`/fleet/companies/${org.companyId}/organization-users`);
+        const usersBody = usersRes.ok ? await usersRes.json().catch(() => ({})) : {};
+        const users: OrganizationUser[] = Array.isArray(usersBody)
+          ? usersBody
+          : (usersBody.users ?? []);
+        return [org.companyId, users];
+      }),
+    ),
+  );
+
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <OrganizationHub
           organizations={organizations}
           totalMemberships={allMemberships.length}
+          organizationUsers={organizationUsers}
         />
       </div>
     </div>
