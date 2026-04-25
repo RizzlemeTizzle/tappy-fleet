@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { FleetCard } from '@/components/fleet/FleetDashboard';
 import { useT } from '@/lib/i18n';
 
 interface AuditEntry {
@@ -141,7 +142,10 @@ export function AuditClient({ companyId: _companyId, logs, members, policies, in
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">{t('nav_audit_log')}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-white">{t('nav_audit_log')}</h1>
+          <p className="mt-1 text-sm text-zinc-400">Review recent administrative changes across employees, billing, policies, and reports.</p>
+        </div>
         <input
           type="search"
           value={search}
@@ -151,7 +155,7 @@ export function AuditClient({ companyId: _companyId, logs, members, policies, in
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+      <FleetCard className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
@@ -201,7 +205,7 @@ export function AuditClient({ companyId: _companyId, logs, members, policies, in
             </tbody>
           </table>
         </div>
-      </div>
+      </FleetCard>
     </div>
   );
 }

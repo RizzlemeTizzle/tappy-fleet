@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 rounded-xl border text-sm font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1017] disabled:pointer-events-none disabled:opacity-60';
 
 const buttonSizes = {
   sm: 'min-h-9 px-3.5 py-2',

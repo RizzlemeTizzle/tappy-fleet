@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { FileText } from 'lucide-react';
+import { FleetCard, FleetPageHeader, StatusPill } from '@/components/fleet/FleetDashboard';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -13,12 +15,12 @@ interface Invoice {
   _count?: { lines: number };
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  DRAFT: 'bg-zinc-500/20 text-zinc-400',
-  SENT: 'bg-blue-500/20 text-blue-400',
-  PAID: 'bg-green-500/20 text-green-400',
-  OVERDUE: 'bg-red-500/20 text-red-400',
-};
+const STATUS_TONES = {
+  DRAFT: 'neutral',
+  SENT: 'blue',
+  PAID: 'teal',
+  OVERDUE: 'red',
+} as const;
 
 function formatMonth(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
@@ -63,11 +65,11 @@ export default function BillingClient({
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">{t('billing_title')}</h1>
-        <p className="text-sm text-zinc-400 mt-1">{t('billing_subtitle')}</p>
-      </div>
-      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+      <FleetPageHeader
+        title={t('billing_title')}
+        description={t('billing_subtitle')}
+      />
+      <FleetCard className="hidden overflow-hidden md:block">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
@@ -85,9 +87,9 @@ export default function BillingClient({
                 <td className="px-5 py-3 text-white font-medium">{formatMonth(inv.periodStart)}</td>
                 <td className="px-5 py-3 text-white">{formatCurrency(inv.totalCents)}</td>
                 <td className="px-5 py-3">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_STYLES[inv.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
+                  <StatusPill tone={STATUS_TONES[inv.status as keyof typeof STATUS_TONES] ?? 'neutral'}>
                     {inv.status}
-                  </span>
+                  </StatusPill>
                 </td>
                 <td className="px-5 py-3 text-zinc-400">{inv._count?.lines ?? '—'}</td>
                 <td className="px-5 py-3">
@@ -111,26 +113,29 @@ export default function BillingClient({
           </tbody>
         </table>
         </div>
-      </div>
+      </FleetCard>
 
       <div className="space-y-3 md:hidden">
         {invoices.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+          <FleetCard className="px-4 py-10 text-center text-zinc-500">
             {t('billing_empty')}
-          </div>
+          </FleetCard>
         )}
         {invoices.map((inv) => (
-          <article key={inv.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <FleetCard key={inv.id} as="article" className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-semibold text-white">{formatMonth(inv.periodStart)}</h2>
-                <p className="mt-1 text-sm text-zinc-400">{formatCurrency(inv.totalCents)}</p>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                  <h2 className="font-semibold text-white">{formatMonth(inv.periodStart)}</h2>
+                </div>
+                <p className="mt-2 text-sm text-zinc-400">{formatCurrency(inv.totalCents)}</p>
               </div>
-              <span className={`rounded px-2 py-1 text-xs font-medium ${STATUS_STYLES[inv.status] ?? 'bg-zinc-700 text-zinc-400'}`}>
+              <StatusPill tone={STATUS_TONES[inv.status as keyof typeof STATUS_TONES] ?? 'neutral'}>
                 {inv.status}
-              </span>
+              </StatusPill>
             </div>
-            <p className="mt-3 text-sm text-zinc-400">{t('billing_col_sessions')}: {inv._count?.lines ?? '—'}</p>
+            <p className="mt-3 text-sm text-zinc-400">{t('billing_col_sessions')}: {inv._count?.lines ?? '-'}</p>
             <button
               onClick={() => downloadPdf(inv.id)}
               disabled={downloading === inv.id}
@@ -138,7 +143,7 @@ export default function BillingClient({
             >
               {downloading === inv.id ? t('billing_downloading') : t('billing_download_pdf')}
             </button>
-          </article>
+          </FleetCard>
         ))}
       </div>
     </div>

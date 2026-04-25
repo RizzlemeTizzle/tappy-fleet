@@ -1,9 +1,10 @@
 'use client';
 
 import { startTransition, useEffect, useMemo, useState } from 'react';
-import { CalendarClock, Download, Filter, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Download, Filter, Save, Trash2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import DatePicker from './DatePicker';
+import { FleetCard, FleetPageHeader } from '@/components/fleet/FleetDashboard';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -17,6 +18,7 @@ interface Session {
   delivered_kwh: number;
   total_cost_cents: number;
   billing_mode: string;
+  policy_violation?: string | null;
   cost_center_code?: string;
   department_id?: string | null;
   department_name?: string | null;
@@ -462,32 +464,34 @@ export default function ReportsClient({
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">{tr('page_reports', 'Session Reports')}</h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Filter by employee, department, billing mode, and policy, then save common report setups for quick reuse.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void exportCsv()}
-          disabled={exporting}
-          className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
-        >
-          <Download size={16} strokeWidth={2.2} />
-          {exporting ? tr('btn_exporting', 'Exporting...') : tr('btn_export_csv', 'Export CSV')}
-        </button>
-      </div>
+      <FleetPageHeader
+        title={tr('page_reports', 'Session Reports')}
+        description="Filter by employee, department, billing mode, and policy, then save common report setups for quick reuse."
+        actions={
+          <button
+            type="button"
+            onClick={() => void exportCsv()}
+            disabled={exporting}
+            className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
+          >
+            <Download size={16} strokeWidth={2.2} />
+            {exporting ? tr('btn_exporting', 'Exporting...') : tr('btn_export_csv', 'Export CSV')}
+          </button>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
         <section className="space-y-6">
+          <FleetCard
+            as="div"
+            className="p-4 sm:p-5"
+          >
           <form
             onSubmit={(event) => {
               event.preventDefault();
               applyFilters();
             }}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 sm:p-5"
+            className="contents"
           >
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               <DatePicker
@@ -562,10 +566,11 @@ export default function ReportsClient({
               </div>
             )}
           </form>
+          </FleetCard>
 
-          <div className="hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+          <FleetCard className="hidden overflow-hidden md:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-sm">
+              <table className="w-full min-w-[1120px] text-sm">
                 <thead>
                   <tr className="border-b border-zinc-800 text-zinc-400">
                     <th className="px-4 py-3 text-left">{tr('col_employee', 'Employee')}</th>
@@ -575,7 +580,7 @@ export default function ReportsClient({
                     <th className="px-4 py-3 text-left">{tr('col_kwh', 'kWh')}</th>
                     <th className="px-4 py-3 text-left">{tr('col_cost', 'Cost')}</th>
                     <th className="px-4 py-3 text-left">{tr('col_billing', 'Billing')}</th>
-                    <th className="px-4 py-3 text-left">Policy</th>
+                    <th className="px-4 py-3 text-left">Policy status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -605,7 +610,15 @@ export default function ReportsClient({
                           )}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-zinc-300">{session.resolved_policy_name || '-'}</td>
+                      <td className="px-4 py-3">
+                        <div className="text-zinc-300">{session.resolved_policy_name || '-'}</div>
+                        {session.policy_violation && (
+                          <div className="mt-2 flex max-w-[22rem] items-start gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-xs leading-5 text-amber-200">
+                            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <span className="whitespace-pre-line">{session.policy_violation}</span>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {filteredSessions.length === 0 && (
@@ -618,16 +631,16 @@ export default function ReportsClient({
                 </tbody>
               </table>
             </div>
-          </div>
+          </FleetCard>
 
           <div className="space-y-3 md:hidden">
             {filteredSessions.length === 0 && (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+              <FleetCard className="px-4 py-10 text-center text-zinc-500">
                 {tr('no_sessions', 'No sessions found for the selected period.')}
-              </div>
+              </FleetCard>
             )}
             {filteredSessions.map((session) => (
-              <article key={session.session_id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+              <FleetCard key={session.session_id} as="article" className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="truncate font-semibold text-white">{session.employee_name}</h2>
@@ -654,14 +667,17 @@ export default function ReportsClient({
                   <MobileRow label={tr('col_kwh', 'kWh')} value={session.delivered_kwh.toFixed(2)} />
                   <MobileRow label={tr('col_cost', 'Cost')} value={formatCurrency(session.total_cost_cents)} />
                   <MobileRow label="Policy" value={session.resolved_policy_name || '-'} />
+                  {session.policy_violation && (
+                    <MobileRow label="Policy violation" value={session.policy_violation} />
+                  )}
                 </dl>
-              </article>
+              </FleetCard>
             ))}
           </div>
         </section>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 sm:p-5">
+          <FleetCard className="p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2 text-white">
               <Save size={16} />
               <h2 className="font-semibold">Saved views</h2>
@@ -722,9 +738,9 @@ export default function ReportsClient({
                 </div>
               ))}
             </div>
-          </section>
+          </FleetCard>
 
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 sm:p-5">
+          <FleetCard className="p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2 text-white">
               <CalendarClock size={16} />
               <h2 className="font-semibold">Scheduled exports</h2>
@@ -841,7 +857,7 @@ export default function ReportsClient({
                 </div>
               ))}
             </div>
-          </section>
+          </FleetCard>
         </aside>
       </div>
     </div>
@@ -895,7 +911,7 @@ function MobileRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <dt className="text-zinc-500">{label}</dt>
-      <dd className="text-right text-zinc-200">{value}</dd>
+      <dd className="whitespace-pre-line text-right text-zinc-200">{value}</dd>
     </div>
   );
 }

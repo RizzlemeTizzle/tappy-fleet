@@ -85,7 +85,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
             aria-label={t('label_switch_org')}
             aria-expanded={showOrgMenu}
             onClick={() => setShowOrgMenu((current) => !current)}
-            className={fleetButtonClass('secondary', 'icon', 'h-8 w-8 rounded-full p-0')}
+            className={fleetButtonClass('secondary', 'icon', 'h-8 w-8 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60')}
           >
             <ArrowRightLeft size={14} />
           </button>
@@ -156,7 +156,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
             <Link
               key={item.path}
               href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60 ${
                 isActive
                   ? 'border border-white/12 bg-[linear-gradient(135deg,rgba(143,125,255,0.18),rgba(109,137,255,0.14),rgba(51,214,197,0.12))] text-white shadow-[0_10px_26px_rgba(62,78,120,0.18)]'
                   : 'text-zinc-400 hover:bg-white/8 hover:text-white'
@@ -177,14 +177,14 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
       <div className="border-t border-white/10 p-3">
         <Link
           href="/fleet"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-400 transition-colors hover:bg-white/8 hover:text-white"
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-400 outline-none transition-colors hover:bg-white/8 hover:text-white focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60"
         >
           <BrandIcon icon={fleetNavIcons.hub} size={16} tone="muted" className="h-9 w-9" />
           {t('nav_all_orgs')}
         </Link>
         <button
           onClick={handleLogout}
-          className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-zinc-400 outline-none transition-colors hover:bg-red-500/10 hover:text-red-400 focus-visible:ring-2 focus-visible:ring-red-400/50"
         >
           <BrandIcon icon={fleetNavIcons.logout} size={16} tone="muted" className="h-9 w-9" />
           {t('nav_sign_out')}
@@ -203,7 +203,7 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
           <button
             type="button"
             onClick={() => setShowMobileNav(true)}
-            className={fleetButtonClass('secondary', 'icon', 'h-10 w-10 rounded-xl p-0')}
+            className={fleetButtonClass('secondary', 'icon', 'h-10 w-10 rounded-xl p-0 focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60')}
             aria-label="Open navigation"
           >
             <Menu size={18} />
@@ -227,21 +227,26 @@ export default function FleetSidebar({ companyId, companyName, role, memberships
             aria-label="Close navigation overlay"
           />
           <div className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(20,26,38,0.98),rgba(11,16,23,0.96))] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
-          <div className="flex items-center gap-3">
-            <TappyLogo size={32} />
-            <span className="text-base font-bold text-white">Tappy Charge</span>
-          </div>
-              <button
-                type="button"
-                onClick={() => setShowMobileNav(false)}
-                className={fleetButtonClass('secondary', 'icon', 'h-9 w-9 rounded-xl p-0')}
-                aria-label="Close navigation"
-              >
-                <X size={16} />
-              </button>
+            <div className="border-b border-white/10 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <TappyLogo size={32} />
+                  <div className="min-w-0">
+                    <span className="block truncate text-base font-bold text-white">Tappy Charge</span>
+                    <span className="block truncate text-sm text-zinc-400">{companyName}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileNav(false)}
+                  className={fleetButtonClass('secondary', 'icon', 'h-9 w-9 rounded-xl p-0 focus-visible:ring-2 focus-visible:ring-[#33d6c5]/60')}
+                  aria-label="Close navigation"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              {renderOrgSwitcher()}
             </div>
-            {renderSidebarHeader()}
             {renderSidebarBody()}
           </div>
         </div>

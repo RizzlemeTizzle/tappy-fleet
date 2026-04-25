@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { FleetCard, FleetPageHeader } from '@/components/fleet/FleetDashboard';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -164,20 +165,23 @@ export default function PoliciesClient({
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-white">{t('policies_title')}</h1>
-        <button
-          onClick={openCreate}
-          className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
-        >
-          <Plus size={16} strokeWidth={2.3} />
-          {t('policy_new_btn')}
-        </button>
-      </div>
+      <FleetPageHeader
+        title={t('policies_title')}
+        description="Define spending, time, and charging rules for employees and teams."
+        actions={
+          <button
+            onClick={openCreate}
+            className={fleetButtonClass('primary', 'md', 'w-full sm:w-auto')}
+          >
+            <Plus size={16} strokeWidth={2.3} />
+            {t('policy_new_btn')}
+          </button>
+        }
+      />
 
       <div className="space-y-3">
         {policies.map((policy) => (
-          <div key={policy.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <FleetCard key={policy.id} className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="font-semibold text-white">{policy.name}</h3>
@@ -228,10 +232,10 @@ export default function PoliciesClient({
                 </button>
               </div>
             </div>
-          </div>
+          </FleetCard>
         ))}
         {policies.length === 0 && (
-          <div className="py-16 text-center text-zinc-500">{t('policies_empty')}</div>
+          <FleetCard className="py-16 text-center text-zinc-500">{t('policies_empty')}</FleetCard>
         )}
       </div>
 

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, Download, MessageSquareText, WalletCards, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { FleetCard, FleetPageHeader, StatusPill } from '@/components/fleet/FleetDashboard';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
 
@@ -180,24 +181,20 @@ export default function ReimbursementsClient({
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            {tr('nav_reimbursements', 'Reimbursements')}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Review employee reimbursement requests from the Tappy app and keep a clean finance queue.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void exportCsv()}
-          className={fleetButtonClass('secondary', 'md', 'w-full sm:w-auto')}
-        >
-          <Download size={16} strokeWidth={2.1} />
-          Export CSV
-        </button>
-      </div>
+      <FleetPageHeader
+        title={tr('nav_reimbursements', 'Reimbursements')}
+        description="Review employee reimbursement requests from the Tappy app and keep a clean finance queue."
+        actions={
+          <button
+            type="button"
+            onClick={() => void exportCsv()}
+            className={fleetButtonClass('secondary', 'md', 'w-full sm:w-auto')}
+          >
+            <Download size={16} strokeWidth={2.1} />
+            Export CSV
+          </button>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
@@ -252,7 +249,7 @@ export default function ReimbursementsClient({
         </div>
       )}
 
-      <div className="mt-6 hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 md:block">
+      <FleetCard className="mt-6 hidden overflow-hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] text-sm">
             <thead>
@@ -330,16 +327,16 @@ export default function ReimbursementsClient({
             </tbody>
           </table>
         </div>
-      </div>
+      </FleetCard>
 
       <div className="mt-6 space-y-3 md:hidden">
         {reimbursements.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-10 text-center text-zinc-500">
+          <FleetCard className="px-4 py-10 text-center text-zinc-500">
             No reimbursement requests in this view.
-          </div>
+          </FleetCard>
         )}
         {reimbursements.map((request) => (
-          <article key={request.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <FleetCard key={request.id} as="article" className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="truncate font-semibold text-white">{request.employee.name ?? 'Unknown employee'}</h2>
@@ -384,7 +381,7 @@ export default function ReimbursementsClient({
                 </button>
               </div>
             )}
-          </article>
+          </FleetCard>
         ))}
       </div>
 
@@ -471,34 +468,30 @@ function SummaryCard({
   icon: typeof WalletCards;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5">
+    <FleetCard className="p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-zinc-400">{label}</p>
           <p className="mt-2 text-2xl font-bold text-white">{value}</p>
           <p className="mt-2 text-xs text-zinc-500">{hint}</p>
         </div>
-        <div className="rounded-2xl border border-[#33d6c5]/20 bg-[#33d6c5]/10 p-3 text-[#7ce9de]">
+        <div className="rounded-lg border border-[#33d6c5]/20 bg-[#33d6c5]/10 p-3 text-[#7ce9de]">
           <Icon size={18} strokeWidth={2.1} />
         </div>
       </div>
-    </div>
+    </FleetCard>
   );
 }
 
 function StatusBadge({ status }: { status: Reimbursement['status'] }) {
-  const classes =
+  const tone =
     status === 'APPROVED'
-      ? 'bg-green-500/20 text-green-300'
+      ? 'teal'
       : status === 'REJECTED'
-        ? 'bg-red-500/20 text-red-300'
-        : 'bg-amber-500/20 text-amber-300';
+        ? 'red'
+        : 'amber';
 
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${classes}`}>
-      {status.toLowerCase()}
-    </span>
-  );
+  return <StatusPill tone={tone}>{status.toLowerCase()}</StatusPill>;
 }
 
 function MobileRow({ label, value }: { label: string; value: string }) {
