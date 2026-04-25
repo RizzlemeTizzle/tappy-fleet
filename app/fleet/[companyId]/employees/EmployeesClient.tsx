@@ -34,7 +34,6 @@ const ROLES = ['EMPLOYEE', 'TEAM_MANAGER', 'FLEET_ADMIN', 'FINANCE_ADMIN', 'FLEE
 const BILLING_MODES = [
   { value: 'COMPANY_PAID', label: 'Company paid' },
   { value: 'EMPLOYEE_REIMBURSABLE', label: 'Reimbursable' },
-  { value: 'PERSONAL', label: 'Personal' },
 ];
 
 const STATUS_STYLES: Record<string, string> = {
@@ -279,10 +278,7 @@ export default function EmployeesClient({
         setActionError(body.error ?? t('emp_action_failed'));
         return;
       }
-      setMembers((prev) => prev.map((m) => m.id === member.id
-        ? { ...m, status: newStatus, ...(newStatus === 'SUSPENDED' && { billing_mode: 'PERSONAL' }) }
-        : m,
-      ));
+      setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, status: newStatus } : m));
     } catch {
       setActionError(t('network_error'));
     } finally {
