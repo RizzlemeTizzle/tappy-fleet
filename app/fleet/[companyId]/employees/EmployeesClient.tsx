@@ -278,7 +278,10 @@ export default function EmployeesClient({
         setActionError(body.error ?? t('emp_action_failed'));
         return;
       }
-      setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, status: newStatus } : m));
+      setMembers((prev) => prev.map((m) => m.id === member.id
+        ? { ...m, status: newStatus, ...(newStatus === 'SUSPENDED' && { billing_mode: 'PERSONAL' }) }
+        : m,
+      ));
     } catch {
       setActionError(t('network_error'));
     } finally {
