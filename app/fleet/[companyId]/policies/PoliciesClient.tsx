@@ -85,11 +85,13 @@ export default function PoliciesClient({
   const [form, setForm] = useState(emptyPolicy);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [hoursWarning, setHoursWarning] = useState(false);
 
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyPolicy);
     setError('');
+    setHoursWarning(false);
     setShowEditor(true);
   };
 
@@ -108,6 +110,7 @@ export default function PoliciesClient({
       mandatory: policy.mandatory,
     });
     setError('');
+    setHoursWarning(false);
     setShowEditor(true);
   };
 
@@ -120,9 +123,30 @@ export default function PoliciesClient({
     }));
   };
 
+  const updateAllowedHoursStart = (allowedHoursStart: string) => {
+    if (allowedHoursStart === '' || form.allowedHoursEnd !== '') {
+      setHoursWarning(false);
+    }
+    setForm((current) => ({ ...current, allowedHoursStart }));
+  };
+
+  const updateAllowedHoursEnd = (allowedHoursEnd: string) => {
+    if (allowedHoursEnd === '' || form.allowedHoursStart !== '') {
+      setHoursWarning(false);
+    }
+    setForm((current) => ({ ...current, allowedHoursEnd }));
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const hasAllowedHoursStart = form.allowedHoursStart !== '';
+    const hasAllowedHoursEnd = form.allowedHoursEnd !== '';
+    if (hasAllowedHoursStart !== hasAllowedHoursEnd) {
+      setHoursWarning(true);
+      return;
+    }
+    setHoursWarning(false);
     setSaving(true);
     const payload = {
       name: form.name,
@@ -348,8 +372,13 @@ export default function PoliciesClient({
                   <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_hours_from')}</label>
                   <select
                     value={form.allowedHoursStart}
-                    onChange={(e) => setForm((current) => ({ ...current, allowedHoursStart: e.target.value }))}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
+                    onChange={(e) => updateAllowedHoursStart(e.target.value)}
+                    aria-invalid={hoursWarning}
+                    className={`w-full rounded-lg border bg-zinc-800 px-3 py-2 text-sm text-white focus:outline-none ${
+                      hoursWarning
+                        ? 'border-amber-400/70 focus:border-amber-300'
+                        : 'border-zinc-700 focus:border-[#33d6c5]'
+                    }`}
                   >
                     <option value="">{t('policy_any_time')}</option>
                     {Array.from({ length: 24 }, (_, i) => (
@@ -363,8 +392,13 @@ export default function PoliciesClient({
                   <label className="mb-1.5 block text-sm text-zinc-400">{t('policy_hours_until')}</label>
                   <select
                     value={form.allowedHoursEnd}
-                    onChange={(e) => setForm((current) => ({ ...current, allowedHoursEnd: e.target.value }))}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-[#33d6c5] focus:outline-none"
+                    onChange={(e) => updateAllowedHoursEnd(e.target.value)}
+                    aria-invalid={hoursWarning}
+                    className={`w-full rounded-lg border bg-zinc-800 px-3 py-2 text-sm text-white focus:outline-none ${
+                      hoursWarning
+                        ? 'border-amber-400/70 focus:border-amber-300'
+                        : 'border-zinc-700 focus:border-[#33d6c5]'
+                    }`}
                   >
                     <option value="">{t('policy_any_time')}</option>
                     {Array.from({ length: 24 }, (_, i) => (
@@ -375,6 +409,9 @@ export default function PoliciesClient({
                   </select>
                 </div>
               </div>
+              {hoursWarning && (
+                <p className="-mt-2 text-sm text-amber-300">{t('policy_hours_pair_required')}</p>
+              )}
               <div className="space-y-2">
                 <label className="flex cursor-pointer items-center gap-2">
                   <input

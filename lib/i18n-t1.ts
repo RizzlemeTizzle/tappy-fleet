@@ -157,6 +157,7 @@ export const T1: Record<string, Record<string, string>> = {
     label_allowed_from: 'Allowed from (hour)',
     opt_any_time: 'Any time',
     label_allowed_until: 'Allowed until (hour)',
+    err_policy_hours_pair_required: 'Fill in both Allowed from and Allowed until, or leave both empty.',
     chk_biz_days: 'Business days only (Mon-Fri)',
     chk_ac_only: 'AC charging only (no DC fast charge)',
     label_enforcement: 'Enforcement',

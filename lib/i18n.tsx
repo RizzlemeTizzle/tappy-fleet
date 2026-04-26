@@ -129,6 +129,7 @@ const KEY_ALIASES: Record<string, string> = {
   policy_max_month:         'label_max_per_month',
   policy_hours_from:        'label_allowed_from',
   policy_hours_until:       'label_allowed_until',
+  policy_hours_pair_required: 'err_policy_hours_pair_required',
   policy_save_failed:       'err_save_failed',
   policies_empty:           'no_policies',
   policy_enforcement_label: 'label_enforcement',
