@@ -62,6 +62,7 @@ const KEY_ALIASES: Record<string, string> = {
   field_billing_email:      'label_billing_email',
   field_vat:                'label_vat_number',
   field_city:               'label_city',
+  field_postal_code:        'label_postal_code',
   field_country:            'label_country',
   field_address:            'label_address',
   field_payment_mode:       'label_payment_mode',

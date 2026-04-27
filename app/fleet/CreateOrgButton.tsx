@@ -18,6 +18,7 @@ export default function CreateOrgButton({ className = '' }: { className?: string
     billingEmail: '',
     vatNumber: '',
     addressLine1: '',
+    addressPostcode: '',
     addressCity: '',
     addressCountry: '',
   });
@@ -100,6 +101,11 @@ export default function CreateOrgButton({ className = '' }: { className?: string
                 <Field label={t('field_city')}>
                   <input value={form.addressCity} onChange={set('addressCity')} className={inputCls} placeholder="Amsterdam" />
                 </Field>
+                <Field label={t('field_postal_code')}>
+                  <input value={form.addressPostcode} onChange={set('addressPostcode')} className={inputCls} placeholder="1015 BA" />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <Field label={t('field_country')}>
                   <input value={form.addressCountry} onChange={set('addressCountry')} className={inputCls} placeholder="Netherlands" />
                 </Field>

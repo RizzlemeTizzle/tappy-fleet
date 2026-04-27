@@ -35,6 +35,7 @@ export const T1: Record<string, Record<string, string>> = {
     label_billing_email: 'Billing email *',
     label_vat_number: 'VAT number',
     label_city: 'City',
+    label_postal_code: 'Postal Code',
     label_country: 'Country',
     label_address: 'Address',
     label_payment_mode: 'Payment mode',

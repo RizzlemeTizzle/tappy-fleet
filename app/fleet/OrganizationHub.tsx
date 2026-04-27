@@ -17,6 +17,7 @@ export interface OrganizationSummary {
   billingEmail: string;
   vatNumber: string;
   addressLine1: string;
+  addressPostcode: string;
   addressCity: string;
   addressCountry: string;
   paymentMode: 'COMPANY_PAID' | 'EMPLOYEE_PAID_REIMBURSABLE';
@@ -67,6 +68,7 @@ function buildForm(org: OrganizationSummary) {
     billingEmail: org.billingEmail,
     vatNumber: org.vatNumber,
     addressLine1: org.addressLine1,
+    addressPostcode: org.addressPostcode,
     addressCity: org.addressCity,
     addressCountry: org.addressCountry,
   };
@@ -93,6 +95,7 @@ export default function OrganizationHub({ organizations, totalMemberships, organ
     billingEmail: '',
     vatNumber: '',
     addressLine1: '',
+    addressPostcode: '',
     addressCity: '',
     addressCountry: '',
   });
@@ -362,7 +365,7 @@ export default function OrganizationHub({ organizations, totalMemberships, organ
               <MetaRow
                 label={t('field_address')}
                 value={
-                  [org.addressLine1, org.addressCity, org.addressCountry]
+                  [org.addressLine1, org.addressPostcode, org.addressCity, org.addressCountry]
                     .filter(Boolean)
                     .join(', ') || t('not_set')
                 }
@@ -444,6 +447,11 @@ export default function OrganizationHub({ organizations, totalMemberships, organ
                 <Field label={t('field_city')}>
                   <input value={form.addressCity} onChange={setField('addressCity')} className={inputCls} placeholder="Amsterdam" />
                 </Field>
+                <Field label={t('field_postal_code')}>
+                  <input value={form.addressPostcode} onChange={setField('addressPostcode')} className={inputCls} placeholder="1015 BA" />
+                </Field>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={t('field_country')}>
                   <input value={form.addressCountry} onChange={setField('addressCountry')} className={inputCls} placeholder="Netherlands" />
                 </Field>

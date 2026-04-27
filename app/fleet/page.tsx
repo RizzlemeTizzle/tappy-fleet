@@ -56,6 +56,7 @@ function normalizeOrganization(membership: Membership, payload: unknown): Organi
     billingEmail: readText(data.billingEmail, data.billing_email),
     vatNumber: readText(data.vatNumber, data.vat_number),
     addressLine1: readText(data.addressLine1, data.address_line1, address.line1),
+    addressPostcode: readText(data.addressPostcode, data.address_postcode, address.postcode, address.postalCode, address.postal_code),
     addressCity: readText(data.addressCity, data.address_city, address.city),
     addressCountry: readText(data.addressCountry, data.address_country, address.country),
     paymentMode:
