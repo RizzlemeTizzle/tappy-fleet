@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { API_URL } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://tappy-shhd.onrender.com';
+const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: ACCESS_TOKEN_TTL_SECONDS,
     path: '/',
   });
   return NextResponse.json({ ok: true });
