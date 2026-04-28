@@ -247,7 +247,12 @@ export default function PoliciesClient({
                   )}
                   {policy.maxSpendPerSessionCents != null && (
                     <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
-                      Max EUR {(policy.maxSpendPerSessionCents / 100).toFixed(2)}/session
+                      Max €{(policy.maxSpendPerSessionCents / 100).toFixed(2)}/session
+                    </span>
+                  )}
+                  {policy.maxMonthlySpendCents != null && (
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
+                      Max €{(policy.maxMonthlySpendCents / 100).toFixed(2)}/month
                     </span>
                   )}
                   {policy.businessDaysOnly && (
