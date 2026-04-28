@@ -27,6 +27,7 @@ interface Reimbursement {
   requested_at: string;
   reviewed_at: string | null;
   session_id: string;
+  policy_violation: string | null;
   employee: {
     membership_id: string;
     user_id: string | null;
@@ -66,6 +67,10 @@ function formatDate(iso: string | null) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function formatPolicyViolation(value: string | null) {
+  return value?.split('\n').find((line) => line.trim())?.trim() ?? null;
 }
 
 export default function ReimbursementsClient({
@@ -131,6 +136,17 @@ export default function ReimbursementsClient({
       nextDecision === 'APPROVED'
         ? ((request.session.total_cost_cents ?? 0) / 100).toFixed(2)
         : '',
+    );
+  };
+
+  const PolicyViolationNotice = ({ value }: { value: string | null }) => {
+    const reason = formatPolicyViolation(value);
+    if (!reason) return null;
+
+    return (
+      <div className="mt-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+        Policy infringed: {reason}
+      </div>
     );
   };
 
@@ -304,6 +320,7 @@ export default function ReimbursementsClient({
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-white">{formatCurrency(request.session.total_cost_cents)}</div>
+                    <PolicyViolationNotice value={request.policy_violation} />
                     {request.approved_amount_cents != null && (
                       <div className="mt-1 text-xs text-zinc-500">
                         Approved {formatCurrency(request.approved_amount_cents)}
@@ -385,6 +402,7 @@ export default function ReimbursementsClient({
                 Request note: {request.request_note}
               </p>
             )}
+            <PolicyViolationNotice value={request.policy_violation} />
             {request.review_note && (
               <p className="mt-2 text-sm text-zinc-500">
                 Review note: {request.review_note}
@@ -438,6 +456,8 @@ export default function ReimbursementsClient({
                 />
               </label>
             )}
+
+            <PolicyViolationNotice value={modalRequest.policy_violation} />
 
             <label className="mt-5 block">
               <span className="mb-1.5 block text-sm text-zinc-400">
