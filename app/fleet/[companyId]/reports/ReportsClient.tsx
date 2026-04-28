@@ -1,182 +1,17 @@
 'use client';
 
 import { startTransition, useEffect, useMemo, useState } from 'react';
-import { Pagination } from '@/components/fleet/Pagination';
-import { AlertTriangle, CalendarClock, Download, Filter, Save, Trash2 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import DatePicker from './DatePicker';
-import { FleetCard, FleetPageHeader } from '@/components/fleet/FleetDashboard';
+import { FleetPageHeader } from '@/components/fleet/FleetDashboard';
 import { fleetButtonClass } from '@/lib/fleet-ui';
 import { useT } from '@/lib/i18n';
-
-interface Session {
-  session_id: string;
-  employee_id?: string;
-  employee_name: string;
-  employee_email: string;
-  station_name: string;
-  started_at: string;
-  delivered_kwh: number;
-  total_cost_cents: number;
-  billing_mode: string;
-  policy_violation?: string | null;
-  cost_center_code?: string;
-  department_id?: string | null;
-  department_name?: string | null;
-  policy_id?: string | null;
-  policy_name?: string | null;
-}
-
-interface Member {
-  id: string;
-  user_name: string | null;
-  user_email: string;
-  department_id: string | null;
-  department_name: string | null;
-  policy_id: string | null;
-  policy_name: string | null;
-}
-
-interface Policy {
-  id: string;
-  name: string;
-}
-
-interface ReportFilters {
-  from: string;
-  to: string;
-  employeeId: string;
-  department: string;
-  billingMode: string;
-  policyId: string;
-}
-
-interface SavedView {
-  id: string;
-  name: string;
-  filters: ReportFilters;
-  createdAt: string;
-}
-
-interface ExportSchedule {
-  id: string;
-  name: string;
-  filters: ReportFilters;
-  recipientEmail: string;
-  frequency: 'weekly' | 'monthly';
-  createdAt: string;
-}
-
-interface EnrichedSession extends Session {
-  resolved_employee_id: string;
-  resolved_department: string;
-  resolved_policy_id: string;
-  resolved_policy_name: string;
-}
-
-const BILLING_MODE_OPTIONS = [
-  { value: '', label: 'All billing modes' },
-  { value: 'COMPANY_PAID', label: 'Company paid' },
-  { value: 'EMPLOYEE_REIMBURSABLE', label: 'Employee reimbursable' },
-];
-
-function formatCurrency(cents: number) {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(cents / 100);
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function formatBillingMode(value: string, companyLabel: string, reimbursableLabel: string) {
-  if (value === 'COMPANY_PAID') return companyLabel;
-  if (value === 'EMPLOYEE_REIMBURSABLE') return reimbursableLabel;
-  return value.replace(/_/g, ' ');
-}
-
-function buildSearchParams(filters: ReportFilters) {
-  const qs = new URLSearchParams();
-  if (filters.from) qs.set('from', filters.from);
-  if (filters.to) qs.set('to', filters.to);
-  if (filters.employeeId) qs.set('employeeId', filters.employeeId);
-  if (filters.department) qs.set('department', filters.department);
-  if (filters.billingMode) qs.set('billingMode', filters.billingMode);
-  if (filters.policyId) qs.set('policyId', filters.policyId);
-  return qs;
-}
-
-function downloadBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function formatDateInput(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function getPreviousClosedPeriod(frequency: ExportSchedule['frequency']) {
-  const today = new Date();
-  const currentDay = today.getDay();
-
-  if (frequency === 'weekly') {
-    const end = new Date(today);
-    const daysSinceMonday = (currentDay + 6) % 7;
-    end.setDate(today.getDate() - daysSinceMonday - 1);
-
-    const start = new Date(end);
-    start.setDate(end.getDate() - 6);
-
-    return {
-      from: formatDateInput(start),
-      to: formatDateInput(end),
-      label: `${start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
-      explanation: 'Previous full Monday-Sunday week',
-    };
-  }
-
-  const end = new Date(today.getFullYear(), today.getMonth(), 0);
-  const start = new Date(end.getFullYear(), end.getMonth(), 1);
-
-  return {
-    from: formatDateInput(start),
-    to: formatDateInput(end),
-    label: `${start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to ${end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
-    explanation: 'Previous full calendar month',
-  };
-}
-
-function getNextRun(schedule: ExportSchedule) {
-  const now = new Date();
-  const next = new Date(now);
-  next.setHours(9, 0, 0, 0);
-
-  if (schedule.frequency === 'weekly') {
-    const dayDelta = (1 - next.getDay() + 7) % 7;
-    next.setDate(next.getDate() + dayDelta);
-    if (next <= now) next.setDate(next.getDate() + 7);
-    return next;
-  }
-
-  next.setDate(1);
-  if (next <= now) {
-    next.setMonth(next.getMonth() + 1, 1);
-  }
-  return next;
-}
-
-function scheduleDescription(schedule: ExportSchedule) {
-  if (schedule.frequency === 'weekly') {
-    return 'Weekly email every Monday at 09:00 with the previous full week';
-  }
-  return 'Monthly email on the 1st at 09:00 with the previous full month';
-}
+import { ReportsFilters } from './ReportsFilters';
+import { SavedViewsPanel } from './SavedViewsPanel';
+import { ScheduledExportsPanel } from './ScheduledExportsPanel';
+import { SessionResults } from './SessionResults';
+import { buildSearchParams, downloadBlob } from './reportUtils';
+import type { EnrichedSession, ExportSchedule, Member, Policy, ReportFilters, SavedView, Session } from './types';
 
 export default function ReportsClient({
   companyId,
@@ -354,7 +189,6 @@ export default function ReportsClient({
     [enrichedSessions, filters],
   );
 
-  const activeQuery = buildSearchParams(filters).toString();
   const totalLabel =
     filteredSessions.length === total
       ? `${filteredSessions.length} ${tr('sessions_total_plural', 'sessions total')}`
@@ -499,442 +333,57 @@ export default function ReportsClient({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
         <section className="space-y-6">
-          <FleetCard
-            as="div"
-            className="p-4 sm:p-5"
-          >
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              applyFilters();
-            }}
-            className="contents"
-          >
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <DatePicker
-                label={tr('label_from', 'From')}
-                value={filters.from}
-                onChange={(value) => setFilters((current) => ({ ...current, from: value }))}
-              />
-              <DatePicker
-                label={tr('label_to', 'To')}
-                value={filters.to}
-                onChange={(value) => setFilters((current) => ({ ...current, to: value }))}
-              />
-              <FilterSelect
-                label="Employee"
-                value={filters.employeeId}
-                onChange={(value) => setFilters((current) => ({ ...current, employeeId: value }))}
-                options={[
-                  { value: '', label: 'All employees' },
-                  ...employees.map((member) => ({
-                    value: member.id,
-                    label: member.user_name ?? member.user_email,
-                  })),
-                ]}
-              />
-              <FilterSelect
-                label="Department"
-                value={filters.department}
-                onChange={(value) => setFilters((current) => ({ ...current, department: value }))}
-                options={[
-                  { value: '', label: 'All departments' },
-                  ...departments.map((name) => ({ value: name, label: name })),
-                ]}
-              />
-              <FilterSelect
-                label="Billing mode"
-                value={filters.billingMode}
-                onChange={(value) => setFilters((current) => ({ ...current, billingMode: value }))}
-                options={BILLING_MODE_OPTIONS}
-              />
-              <FilterSelect
-                label="Policy"
-                value={filters.policyId}
-                onChange={(value) => setFilters((current) => ({ ...current, policyId: value }))}
-                options={[
-                  { value: '', label: 'All policies' },
-                  ...policies.map((policy) => ({ value: policy.id, label: policy.name })),
-                ]}
-              />
-            </div>
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <button
-                type="submit"
-                className={fleetButtonClass('secondary', 'md', 'w-full sm:w-auto')}
-              >
-                <Filter size={16} strokeWidth={2.2} />
-                {tr('btn_apply', 'Apply')}
-              </button>
-              <button
-                type="button"
-                onClick={resetFilters}
-                className={fleetButtonClass('subtle', 'md', 'w-full sm:w-auto')}
-              >
-                Reset
-              </button>
-              <div className="text-sm text-zinc-400">{totalLabel}</div>
-            </div>
-
-            {feedback && (
-              <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
-                {feedback}
-              </div>
-            )}
-          </form>
-          </FleetCard>
-
-          <FleetCard className="hidden overflow-hidden md:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1120px] text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-400">
-                    <th className="px-4 py-3 text-left">{tr('col_employee', 'Employee')}</th>
-                    <th className="px-4 py-3 text-left">Department</th>
-                    <th className="px-4 py-3 text-left">{tr('col_station', 'Station')}</th>
-                    <th className="px-4 py-3 text-left">{tr('col_date', 'Date')}</th>
-                    <th className="px-4 py-3 text-left">{tr('col_kwh', 'kWh')}</th>
-                    <th className="px-4 py-3 text-left">{tr('col_cost', 'Cost')}</th>
-                    <th className="px-4 py-3 text-left">{tr('col_billing', 'Billing')}</th>
-                    <th className="px-4 py-3 text-left">Policy status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSessions.map((session) => (
-                    <tr key={session.session_id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-white">{session.employee_name}</div>
-                        <div className="text-xs text-zinc-500">{session.employee_email}</div>
-                      </td>
-                      <td className="px-4 py-3 text-zinc-300">{session.resolved_department || '-'}</td>
-                      <td className="px-4 py-3 text-zinc-300">{session.station_name}</td>
-                      <td className="px-4 py-3 text-zinc-400">{formatDate(session.started_at)}</td>
-                      <td className="px-4 py-3 text-zinc-300">{session.delivered_kwh.toFixed(2)}</td>
-                      <td className="px-4 py-3 font-medium text-white">{formatCurrency(session.total_cost_cents)}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs font-medium ${
-                            session.billing_mode === 'COMPANY_PAID'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-blue-500/20 text-blue-400'
-                          }`}
-                        >
-                          {formatBillingMode(
-                            session.billing_mode,
-                            tr('badge_company', 'Company'),
-                            tr('badge_reimbursable', 'Reimbursable'),
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-zinc-300">{session.resolved_policy_name || '-'}</div>
-                        {session.policy_violation && (
-                          <div className="mt-2 flex max-w-[22rem] items-start gap-1.5 rounded-md border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-xs leading-5 text-amber-200">
-                            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                            <span className="whitespace-pre-line">{session.policy_violation}</span>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredSessions.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-zinc-500">
-                        {tr('no_sessions', 'No sessions found for the selected period.')}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          <div className="border-t border-zinc-800 px-4">
-              <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
-            </div>
-          </FleetCard>
-
-          <div className="space-y-3 md:hidden">
-            {filteredSessions.length === 0 && (
-              <FleetCard className="px-4 py-10 text-center text-zinc-500">
-                {tr('no_sessions', 'No sessions found for the selected period.')}
-              </FleetCard>
-            )}
-            {filteredSessions.map((session) => (
-              <FleetCard key={session.session_id} as="article" className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="truncate font-semibold text-white">{session.employee_name}</h2>
-                    <p className="mt-1 break-all text-sm text-zinc-500">{session.employee_email}</p>
-                  </div>
-                  <span
-                    className={`rounded px-2 py-1 text-xs font-medium ${
-                      session.billing_mode === 'COMPANY_PAID'
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-blue-500/20 text-blue-400'
-                    }`}
-                  >
-                    {formatBillingMode(
-                      session.billing_mode,
-                      tr('badge_company', 'Company'),
-                      tr('badge_reimbursable', 'Reimbursable'),
-                    )}
-                  </span>
-                </div>
-                <dl className="mt-4 space-y-2 text-sm">
-                  <MobileRow label="Department" value={session.resolved_department || '-'} />
-                  <MobileRow label={tr('col_station', 'Station')} value={session.station_name} />
-                  <MobileRow label={tr('col_date', 'Date')} value={formatDate(session.started_at)} />
-                  <MobileRow label={tr('col_kwh', 'kWh')} value={session.delivered_kwh.toFixed(2)} />
-                  <MobileRow label={tr('col_cost', 'Cost')} value={formatCurrency(session.total_cost_cents)} />
-                  <MobileRow label="Policy" value={session.resolved_policy_name || '-'} />
-                  {session.policy_violation && (
-                    <MobileRow label="Policy violation" value={session.policy_violation} />
-                  )}
-                </dl>
-              </FleetCard>
-            ))}
-          </div>
-          <div className="md:hidden">
-            <Pagination currentPage={currentPage} totalPages={totalPages} total={total} pageSize={pageSize} onPageChange={goToPage} />
-          </div>
+          <ReportsFilters
+            filters={filters}
+            employees={employees}
+            departments={departments}
+            policies={policies}
+            totalLabel={totalLabel}
+            feedback={feedback}
+            tr={tr}
+            onChange={setFilters}
+            onApply={applyFilters}
+            onReset={resetFilters}
+          />
+          <SessionResults
+            sessions={filteredSessions}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            total={total}
+            pageSize={pageSize}
+            tr={tr}
+            onPageChange={goToPage}
+          />
         </section>
 
         <aside className="space-y-6">
-          <FleetCard className="p-4 sm:p-5">
-            <div className="mb-4 flex items-center gap-2 text-white">
-              <Save size={16} />
-              <h2 className="font-semibold">Saved views</h2>
-            </div>
-            <p className="mb-4 text-sm text-zinc-400">
-              Store common filter combinations in this browser for faster reporting.
-            </p>
-            <div className="space-y-3">
-              <label className="block">
-                <span className="mb-1.5 block text-xs text-zinc-400">View name</span>
-                <input
-                  value={viewName}
-                  onChange={(event) => setViewName(event.target.value)}
-                  placeholder="Month-end finance pack"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={saveCurrentView}
-                className={fleetButtonClass('secondary', 'md', 'w-full')}
-              >
-                <Save size={16} strokeWidth={2.1} />
-                Save current view
-              </button>
-            </div>
-            <div className="mt-4 space-y-3">
-              {savedViews.length === 0 && (
-                <div className="rounded-xl border border-dashed border-zinc-700 px-3 py-4 text-sm text-zinc-500">
-                  No saved views yet.
-                </div>
-              )}
-              {savedViews.map((view) => (
-                <div key={view.id} className="rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-white">{view.name}</div>
-                      <div className="mt-1 text-xs text-zinc-500">
-                        {describeFilters(view.filters, members, policies)}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteSavedView(view.id)}
-                      className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
-                      aria-label={`Delete saved view ${view.name}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => applySavedView(view)}
-                    className={fleetButtonClass('subtle', 'sm', 'mt-3 w-full')}
-                  >
-                    Apply view
-                  </button>
-                </div>
-              ))}
-            </div>
-          </FleetCard>
-
-          <FleetCard className="p-4 sm:p-5">
-            <div className="mb-4 flex items-center gap-2 text-white">
-              <CalendarClock size={16} />
-              <h2 className="font-semibold">Scheduled exports</h2>
-            </div>
-            <p className="mb-4 text-sm text-zinc-400">
-              Save a reusable email export preset in this browser. Weekly sends always use the previous full Monday-Sunday week, and monthly sends use the previous full calendar month.
-            </p>
-            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-sm text-amber-100">
-              Automatic background emailing is not wired up in this frontend yet, so these presets stay on this device for now.
-            </div>
-            <div className="space-y-3">
-              <label className="block">
-                <span className="mb-1.5 block text-xs text-zinc-400">Schedule name</span>
-                <input
-                  value={scheduleName}
-                  onChange={(event) => setScheduleName(event.target.value)}
-                  placeholder="Weekly finance export"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-xs text-zinc-400">Email address</span>
-                <input
-                  type="email"
-                  value={scheduleEmail}
-                  onChange={(event) => setScheduleEmail(event.target.value)}
-                  placeholder="finance@company.com"
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
-                />
-              </label>
-              <div className="grid gap-3">
-                <FilterSelect
-                  label="Frequency"
-                  value={scheduleFrequency}
-                  onChange={(value) => setScheduleFrequency(value as 'weekly' | 'monthly')}
-                  options={[
-                    { value: 'weekly', label: 'Weekly' },
-                    { value: 'monthly', label: 'Monthly' },
-                  ]}
-                />
-              </div>
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-3 text-sm text-zinc-400">
-                {scheduleFrequency === 'weekly'
-                  ? 'Weekly exports are prepared every Monday at 09:00 and include the full week that just closed.'
-                  : 'Monthly exports are prepared on the 1st at 09:00 and include the full previous calendar month.'}
-              </div>
-              <button
-                type="button"
-                onClick={saveSchedule}
-                className={fleetButtonClass('secondary', 'md', 'w-full')}
-              >
-                <CalendarClock size={16} strokeWidth={2.1} />
-                Save schedule
-              </button>
-            </div>
-            <div className="mt-4 space-y-3">
-              {schedules.length === 0 && (
-                <div className="rounded-xl border border-dashed border-zinc-700 px-3 py-4 text-sm text-zinc-500">
-                  No schedules saved yet.
-                </div>
-              )}
-              {schedules.map((schedule) => (
-                <div key={schedule.id} className="rounded-xl border border-zinc-800 bg-zinc-950/80 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-white">{schedule.name}</div>
-                      <div className="mt-1 text-xs text-zinc-500">{scheduleDescription(schedule)}</div>
-                      <div className="mt-1 text-xs text-zinc-500">
-                        Next run {getNextRun(schedule).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
-                      </div>
-                      <div className="mt-1 text-xs text-zinc-500">Recipient {schedule.recipientEmail}</div>
-                      <div className="mt-1 text-xs text-zinc-500">
-                        Data window {getPreviousClosedPeriod(schedule.frequency).label}
-                      </div>
-                      <div className="mt-2 text-xs text-zinc-500">
-                        {describeFilters(schedule.filters, members, policies)}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteSchedule(schedule.id)}
-                      className="rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-white"
-                      aria-label={`Delete scheduled export ${schedule.name}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => applySavedView({ id: schedule.id, name: schedule.name, filters: schedule.filters, createdAt: schedule.createdAt })}
-                      className={fleetButtonClass('subtle', 'sm', 'w-full')}
-                    >
-                      Load filters
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const period = getPreviousClosedPeriod(schedule.frequency);
-                        void exportCsv(
-                          {
-                            ...schedule.filters,
-                            from: period.from,
-                            to: period.to,
-                          },
-                          schedule.name.toLowerCase().replace(/\s+/g, '-'),
-                        );
-                      }}
-                      className={fleetButtonClass('secondary', 'sm', 'w-full')}
-                    >
-                      Run export now
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </FleetCard>
+          <SavedViewsPanel
+            savedViews={savedViews}
+            viewName={viewName}
+            members={members}
+            policies={policies}
+            onViewNameChange={setViewName}
+            onSave={saveCurrentView}
+            onApply={applySavedView}
+            onDelete={deleteSavedView}
+          />
+          <ScheduledExportsPanel
+            schedules={schedules}
+            scheduleName={scheduleName}
+            scheduleEmail={scheduleEmail}
+            scheduleFrequency={scheduleFrequency}
+            members={members}
+            policies={policies}
+            onScheduleNameChange={setScheduleName}
+            onScheduleEmailChange={setScheduleEmail}
+            onScheduleFrequencyChange={setScheduleFrequency}
+            onSave={saveSchedule}
+            onDelete={deleteSchedule}
+            onApply={applySavedView}
+            onExport={(selectedFilters, fileStem) => void exportCsv(selectedFilters, fileStem)}
+          />
         </aside>
       </div>
-    </div>
-  );
-}
-
-function describeFilters(filters: ReportFilters, members: Member[], policies: Policy[]) {
-  const employee = members.find((member) => member.id === filters.employeeId);
-  const policy = policies.find((item) => item.id === filters.policyId);
-  const parts = [
-    employee ? employee.user_name ?? employee.user_email : '',
-    filters.department,
-    filters.billingMode ? filters.billingMode.replace(/_/g, ' ').toLowerCase() : '',
-    policy?.name ?? '',
-    filters.from || filters.to ? [filters.from, filters.to].filter(Boolean).join(' to ') : '',
-  ].filter(Boolean);
-
-  return parts.length > 0 ? parts.join(' | ') : 'All sessions';
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs text-zinc-400">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[#33d6c5]"
-      >
-        {options.map((option) => (
-          <option key={`${label}-${option.value || 'all'}`} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function MobileRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="whitespace-pre-line text-right text-zinc-200">{value}</dd>
     </div>
   );
 }
